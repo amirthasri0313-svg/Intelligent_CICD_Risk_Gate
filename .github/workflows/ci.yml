@@ -41,7 +41,7 @@ jobs:
 
       - name: Risk Gate
         run: |
-          python risk_gate.py
+          python risk_gate.py 88
 
       - name: Deployment
         run: |
