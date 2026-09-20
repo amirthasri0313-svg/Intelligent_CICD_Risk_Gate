@@ -1,0 +1,48 @@
+def calculate_readiness(change_score, tests_passed, security_passed, quality_passed):
+    score = 100
+
+    # Change impact
+    score -= change_score * 0.4
+
+    # Test result
+    if not tests_passed:
+        score -= 30
+
+    # Security result
+    if not security_passed:
+        score -= 20
+
+    # Code quality result
+    if not quality_passed:
+        score -= 10
+
+    return max(0, round(score))
+
+
+def get_release_decision(readiness_score):
+    if readiness_score >= 75:
+        return "LOW RISK - AUTO DEPLOY"
+    elif readiness_score >= 50:
+        return "MEDIUM RISK - MANUAL APPROVAL"
+    else:
+        return "HIGH RISK - BLOCK RELEASE"
+
+
+if __name__ == "__main__":
+    # Example values
+    change_score = 30
+    tests_passed = True
+    security_passed = True
+    quality_passed = True
+
+    readiness = calculate_readiness(
+        change_score,
+        tests_passed,
+        security_passed,
+        quality_passed
+    )
+
+    decision = get_release_decision(readiness)
+
+    print("Release Readiness Score:", readiness, "/100")
+    print("Release Decision:", decision)
