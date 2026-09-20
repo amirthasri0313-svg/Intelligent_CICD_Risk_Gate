@@ -2,3 +2,5 @@ __pycache__/
 *.pyc
 readiness_score.txt
 change_score.txt
+security_result.txt
+quality_result.txt

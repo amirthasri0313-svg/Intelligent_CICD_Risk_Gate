@@ -35,6 +35,14 @@ jobs:
         run: |
           python change_analyzer.py
 
+      - name: Security Check
+        run: |
+          python security_check.py
+
+      - name: Code Quality Check
+        run: |
+          python quality_check.py
+
       - name: Release Readiness
         run: |
           python release_readiness.py
