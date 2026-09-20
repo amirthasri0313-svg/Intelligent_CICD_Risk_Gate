@@ -1,4 +1,4 @@
-name: CI Pipeline
+name: Intelligent CI/CD Risk Gate
 
 on:
   push:
@@ -7,11 +7,10 @@ on:
     branches: [master]
 
 jobs:
-  test:
+  risk-gate:
     runs-on: ubuntu-latest
 
     steps:
-
       - name: Checkout code
         uses: actions/checkout@v4
         with:
@@ -35,13 +34,13 @@ jobs:
         run: |
           python change_analyzer.py
 
-      - name: Security Check
-        run: |
-          python security_check.py
-
       - name: Code Quality Check
         run: |
           python quality_check.py
+
+      - name: Security Check
+        run: |
+          python security_check.py
 
       - name: Release Readiness
         run: |
@@ -50,9 +49,30 @@ jobs:
       - name: Risk Gate
         run: |
           score=$(cat readiness_score.txt)
-          echo "Using Readiness Score: $score"
-          python risk_gate.py $score
 
-      - name: Deployment
+          echo "================================="
+          echo "Release Readiness Score: $score"
+          echo "================================="
+
+          python risk_gate.py "$score"
+
+      - name: Deployment Decision
         run: |
-          python deploy.py
+          score=$(cat readiness_score.txt)
+
+          echo "================================="
+          echo "DEPLOYMENT DECISION"
+          echo "================================="
+
+          if [ "$score" -ge 75 ]; then
+            echo "LOW RISK - AUTO DEPLOY"
+            python deploy.py
+
+          elif [ "$score" -ge 50 ]; then
+            echo "MEDIUM RISK - MANUAL APPROVAL REQUIRED"
+            echo "Deployment will not run automatically."
+
+          else
+            echo "HIGH RISK - RELEASE BLOCKED"
+            exit 1
+          fi
