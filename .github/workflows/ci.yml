@@ -11,8 +11,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -24,5 +27,18 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run tests
-        run: pytest
+      - name: Run Tests
+        run: |
+          pytest
+
+      - name: Change Analysis
+        run: |
+          python change_analyzer.py
+
+      - name: Release Readiness
+        run: |
+          python release_readiness.py
+
+      - name: Risk Gate
+        run: |
+          python risk_gate.py
