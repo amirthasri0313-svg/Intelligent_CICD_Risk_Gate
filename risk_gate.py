@@ -22,6 +22,9 @@ if __name__ == "__main__":
     print("Readiness Score:", readiness_score)
     print("Risk Gate Decision:", decision)
 
-    # Block deployment for high-risk releases
     if decision == "RELEASE BLOCKED":
         sys.exit(1)
+
+    elif decision == "MANUAL APPROVAL REQUIRED":
+        print("Waiting for manual approval...")
+        sys.exit(2)

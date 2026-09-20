@@ -1,21 +1,29 @@
+import subprocess
+
+
 def run_security_check():
-    print("Running Security Check...")
+    print("Running Bandit Security Scan...")
 
-    # Basic security validation
-    security_passed = True
+    result = subprocess.run(
+        ["bandit", "-r", ".", "-x", "./.git,./__pycache__", "--severity-level", "medium"],
+        capture_output=True,
+        text=True,
+        check=False
+    )
 
-    if security_passed:
+    print(result.stdout)
+
+    if result.returncode == 0:
         print("Security Check: PASSED")
-        result = "PASS"
+        status = "PASS"
     else:
         print("Security Check: FAILED")
-        result = "FAIL"
+        status = "FAIL"
 
-    # Save security result for CI/CD
     with open("security_result.txt", "w") as file:
-        file.write(result)
+        file.write(status)
 
-    return security_passed
+    return result.returncode == 0
 
 
 if __name__ == "__main__":

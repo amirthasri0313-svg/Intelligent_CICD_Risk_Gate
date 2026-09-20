@@ -1,21 +1,30 @@
+import subprocess
+
+
 def run_quality_check():
-    print("Running Code Quality Check...")
+    print("Running Ruff Code Quality Scan...")
 
-    # Basic quality validation
-    quality_passed = True
+    result = subprocess.run(
+        ["ruff", "check", "."],
+        capture_output=True,
+        text=True,
+        check=False
+    )
 
-    if quality_passed:
+    if result.stdout:
+        print(result.stdout)
+
+    if result.returncode == 0:
         print("Code Quality Check: PASSED")
-        result = "PASS"
+        status = "PASS"
     else:
         print("Code Quality Check: FAILED")
-        result = "FAIL"
+        status = "FAIL"
 
-    # Save result for CI/CD
     with open("quality_result.txt", "w") as file:
-        file.write(result)
+        file.write(status)
 
-    return quality_passed
+    return result.returncode == 0
 
 
 if __name__ == "__main__":

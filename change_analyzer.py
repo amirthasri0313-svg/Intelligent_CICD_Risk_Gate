@@ -5,7 +5,8 @@ def get_changed_files():
     result = subprocess.run(
         ["git", "diff", "--name-only", "HEAD~1", "HEAD"],
         capture_output=True,
-        text=True
+        text=True,
+        check=False
     )
 
     return [
