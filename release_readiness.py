@@ -1,4 +1,5 @@
 def calculate_readiness(change_score, tests_passed, security_passed, quality_passed):
+
     score = 100
 
     # Change impact
@@ -20,16 +21,19 @@ def calculate_readiness(change_score, tests_passed, security_passed, quality_pas
 
 
 def get_release_decision(readiness_score):
+
     if readiness_score >= 75:
         return "LOW RISK - AUTO DEPLOY"
+
     elif readiness_score >= 50:
         return "MEDIUM RISK - MANUAL APPROVAL"
+
     else:
         return "HIGH RISK - BLOCK RELEASE"
 
 
 if __name__ == "__main__":
-    # Example values
+
     change_score = 30
     tests_passed = True
     security_passed = True
@@ -46,3 +50,7 @@ if __name__ == "__main__":
 
     print("Release Readiness Score:", readiness, "/100")
     print("Release Decision:", decision)
+
+    # Save score for CI/CD pipeline
+    with open("readiness_score.txt", "w") as file:
+        file.write(str(readiness))

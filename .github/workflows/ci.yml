@@ -41,7 +41,9 @@ jobs:
 
       - name: Risk Gate
         run: |
-          python risk_gate.py 40
+          score=$(cat readiness_score.txt)
+          echo "Using Readiness Score: $score"
+          python risk_gate.py $score
 
       - name: Deployment
         run: |
