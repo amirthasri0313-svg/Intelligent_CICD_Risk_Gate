@@ -24,7 +24,7 @@ def calculate_change_score(files):
         if file.endswith(".py"):
             score += 20
 
-        # CI/CD configuration
+        # CI/CD workflow changes
         elif ".github/workflows" in file:
             score += 30
 
@@ -44,11 +44,17 @@ def calculate_change_score(files):
 
 
 if __name__ == "__main__":
+
     changed_files = get_changed_files()
     change_score = calculate_change_score(changed_files)
 
     print("Changed Files:")
+
     for file in changed_files:
         print(f" - {file}")
 
     print(f"\nChange Score: {change_score}/100")
+
+    # Save change score for release readiness
+    with open("change_score.txt", "w") as file:
+        file.write(str(change_score))
