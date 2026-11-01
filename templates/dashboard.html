@@ -24,6 +24,16 @@ body.dark a{color:#7cb3ff}
 .b.primary:hover{filter:brightness(1.1)}
 .b:disabled{opacity:.55;cursor:wait}
 .b.green{background:#15803d;border:0}.b.red{background:#b91c1c;border:0}
+.demo{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px}
+.sce{background:#111a2e;border:1px solid #1f2b45;border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:8px;border-top:3px solid var(--c)}
+.sce h4{font-size:16px;display:flex;align-items:center;gap:8px}
+.sce p{font-size:13px;color:#a9b8d0;line-height:1.45;flex:1}
+.sce .exp{font-size:12px;color:#8da0bd}
+.sce .gh{font-size:12.5px}
+.sce .b{justify-content:center}
+.sce.active{box-shadow:0 0 0 2px #3b82f6}
+@media(max-width:1150px){.demo{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:640px){.demo{grid-template-columns:1fr}}
 /* flow */
 .flow{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:0;margin-bottom:16px;position:relative}
 .node{position:relative;padding:0 10px;min-width:0}
@@ -134,6 +144,11 @@ code{font-family:Consolas,"Courier New",monospace;font-size:12.5px;color:#c4d3ea
     <div class="flowline"><i id="flowfill"></i></div>
   </div>
 
+
+  <div class="panel" style="margin-bottom:16px;padding-bottom:16px">
+    <h3><span>{% if STATIC %}What the gate does · proof on GitHub{% else %}Live demo · push a change through the pipeline{% endif %}</span><span class="sm mut" style="text-transform:none;letter-spacing:0;font-weight:600">{% if STATIC %}each card links to the real GitHub Actions run{% else %}each run makes a real git commit and runs every stage, as GitHub Actions does after a push{% endif %}</span></h3>
+    <div class="demo" id="demo"></div>
+  </div>
   {% if not STATIC %}
   <div class="panel" id="runner" hidden style="margin-bottom:16px">
     <h3><span>Pipeline run <span id="rn-title" class="mut"></span></span><span class="mut sm" id="rn-time"></span></h3>
@@ -206,6 +221,7 @@ const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;
 const t = iso => iso ? new Date(iso).toLocaleString("en-IN", {timeZone:"Asia/Kolkata", day:"2-digit", month:"short", hour:"2-digit", minute:"2-digit"}) : "";
 const ago = iso => { const s = (Date.now() - new Date(iso)) / 1000; return s < 60 ? "just now" : s < 3600 ? Math.round(s/60) + " min ago" : s < 86400 ? Math.round(s/3600) + " h ago" : Math.round(s/86400) + " d ago"; };
 const col = s => s <= 30 ? "#22c55e" : s <= 70 ? "#f59e0b" : "#ef4444";
+const rc = r => ({"AUTO DEPLOY": "#22c55e", "MANUAL APPROVAL": "#f59e0b", "RELEASE BLOCKED": "#ef4444"})[r.decision] || col(r.risk_score);  // colour follows the gate decision
 const DEC = {"AUTO DEPLOY":"t-ok","MANUAL APPROVAL":"t-warn","RELEASE BLOCKED":"t-bad"};
 const STA = {"DEPLOYED":"t-ok","DEPLOYING":"t-info","WAITING APPROVAL":"t-warn","BLOCKED":"t-bad","REJECTED":"t-grey"};
 const SRC = {"github actions":["GitHub Actions","t-info"],"local pipeline":["Local pipeline","t-pur"],"code input":["Code input","t-grey"]};
@@ -243,7 +259,7 @@ function nodeInfo(r) {
   return [
     ["ok", `${esc(sl)}${r.run_number ? " #" + esc(r.run_number) : ""}${r.commit ? " · <code>" + esc(r.commit.slice(0, 7)) + "</code>" : ""}${files ? " · " + files + " file" + (files > 1 ? "s" : "") : ""}`, `<span class="tag t-grey">${esc((r.message || "").slice(0, 34))}</span>`],
     [evalBad ? "bad" : "ok", evalTxt, `<span class="tag ${evalBad ? "t-bad" : "t-ok"}">${evalBad ? "ISSUES FOUND" : "ALL CHECKS PASS"}</span>`],
-    [gate, `E ${fmt(rk.evaluation_risk)} · H ${fmt(rk.historical_risk)} → <b style="color:${col(r.risk_score)}">R ${fmt(r.risk_score)}</b>`, `<span class="tag t-grey">readiness ${fmt(rk.readiness_score)}</span>`],
+    [gate, `E ${fmt(rk.evaluation_risk)} · H ${fmt(rk.historical_risk)} → <b style="color:${rc(r)}">R ${fmt(r.risk_score)}</b>`, `<span class="tag t-grey">readiness ${fmt(rk.readiness_score)}</span>`],
     [gate, `${(rk.blockers || []).length} blockers · ${(rk.guards || []).length} guards`, `<span class="tag ${DEC[r.decision]}">${esc(r.decision)}</span>`],
     ["ok", `Recorded as run ${esc(r.key)} · ${ago(r.created_at)}`, `<span class="tag t-info">HISTORY SAVED</span>`],
     [rel, r.approved_by ? "Approved by " + esc(r.approved_by) : r.status === "DEPLOYED" ? (r.site_url ? "Published to GitHub Pages" : "Released") : r.status === "WAITING APPROVAL" ? "Reviewer must approve" : r.status === "BLOCKED" ? "Fix blockers, push again" : esc(r.status), `<span class="tag ${STA[r.status] || "t-grey"}">${esc(r.status)}</span>`],
@@ -266,7 +282,7 @@ function trend(runs) {
   const line = (key, c, w, dash) => { const pts = last.map((r, i) => [i, key(r)]).filter(p => p[1] != null);
     return pts.length > 1 ? `<polyline points="${pts.map(([i, v]) => x(i) + "," + y(v)).join(" ")}" fill="none" stroke="${c}" stroke-width="${w}" ${dash ? `stroke-dasharray="${dash}"` : ""} stroke-linejoin="round"/>` : ""; };
   s += line(r => r.risk?.evaluation_risk, "#3b82f6", 1.6, "5 4") + line(r => r.risk?.historical_risk, "#a78bfa", 1.6, "2 4") + line(r => r.risk_score, "#e5ecf6", 2.4);
-  last.forEach((r, i) => { s += `<circle cx="${x(i)}" cy="${y(r.risk_score)}" r="5" fill="${col(r.risk_score)}" stroke="#111a2e" stroke-width="2" style="cursor:pointer" data-key="${r.key}"><title>${esc(r.key)} · ${esc(r.message)}\nR ${r.risk_score} · ${r.decision}</title></circle>`;
+  last.forEach((r, i) => { s += `<circle cx="${x(i)}" cy="${y(r.risk_score)}" r="5" fill="${rc(r)}" stroke="#111a2e" stroke-width="2" style="cursor:pointer" data-key="${r.key}"><title>${esc(r.key)} · ${esc(r.message)}\nR ${r.risk_score} · ${r.decision}</title></circle>`;
     if (n <= 14 || i % Math.ceil(n / 12) === 0) s += `<text x="${x(i)}" y="${H - 8}" text-anchor="middle" font-size="10" fill="#6f83a3">${esc(r.key.replace("local-", "L").replace("gh-", "#"))}</text>`; });
   svg.innerHTML = n ? s : `<text x="50%" y="50%" text-anchor="middle" fill="#6f83a3" font-size="13">No runs yet</text>`;
   svg.querySelectorAll("circle[data-key]").forEach(c => c.addEventListener("click", () => openRun(c.dataset.key)));
@@ -287,7 +303,7 @@ function contrib(runs) {
     s += `<text x="${L - 8}" y="${y0 + 12}" text-anchor="end" font-size="11" fill="#a9b8d0">${esc(r.key.replace("local-", "L").replace("gh-", "#"))}</text>`;
     s += `<rect x="${L}" y="${y0}" width="${sc(e)}" height="16" rx="3" fill="#3b82f6"><title>${hasH ? "0.65 × E" : "E (no history for pasted code)"} = ${e.toFixed(1)}</title></rect>`;
     s += `<rect x="${L + sc(e)}" y="${y0}" width="${sc(h)}" height="16" rx="3" fill="#a78bfa"><title>0.35 × H = ${h.toFixed(1)}</title></rect>`;
-    s += `<text x="${L + sc(Math.max(r.risk_score, e + h)) + 6}" y="${y0 + 12}" font-size="11" font-weight="700" fill="${col(r.risk_score)}">${fmt(r.risk_score)}</text>`; });
+    s += `<text x="${L + sc(Math.max(r.risk_score, e + h)) + 6}" y="${y0 + 12}" font-size="11" font-weight="700" fill="${rc(r)}">${fmt(r.risk_score)}</text>`; });
   svg.setAttribute("height", last.length * rowH + 22);
   svg.innerHTML = last.length ? s : `<text x="50%" y="50%" text-anchor="middle" fill="#6f83a3" font-size="13">No runs yet</text>`;
 }
@@ -297,7 +313,7 @@ function why(r) {
   if (!r) return '<div class="mut sm">No runs yet.</div>';
   const rk = r.risk || {}, top = (rk.factors || []).filter(f => f[1] > 0).sort((a, b) => b[1] - a[1]).slice(0, 5);
   return `<div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:12px">
-      <div style="font-size:44px;font-weight:800;color:${col(r.risk_score)};line-height:1">${fmt(r.risk_score)}</div>
+      <div style="font-size:44px;font-weight:800;color:${rc(r)};line-height:1">${fmt(r.risk_score)}</div>
       <div><span class="tag ${DEC[r.decision]}" style="font-size:13px">${esc(r.decision)}</span> <span class="tag ${STA[r.status] || "t-grey"}">${esc(r.status)}</span>
       <div class="sm mut" style="margin-top:6px">${esc(r.message)} · ${esc(r.author)} · ${t(r.created_at)}</div></div>
       <button class="b" style="margin-left:auto;padding:7px 12px" onclick="openRun('${r.key}')">Details →</button></div>
@@ -323,7 +339,7 @@ function table(fresh = new Set()) {
     return `<tr class="${fresh.has(r.key) ? "new" : ""}" data-key="${r.key}"><td><b>${esc(r.key.replace("gh-", "#").replace("local-", "L"))}</b></td><td class="sm mut">${t(r.created_at)}</td>
       <td><span class="tag ${sc}">${sl}${r.run_number ? " #" + esc(r.run_number) : ""}</span></td>
       <td>${r.commit ? `<code>${esc(r.commit.slice(0, 7))}</code> ` : ""}${esc((r.message || "").slice(0, 60))}</td><td class="sm">${esc(r.author)}</td>
-      <td style="white-space:nowrap"><span class="meter"><i style="width:${r.risk_score}%;background:${col(r.risk_score)}"></i></span><b style="color:${col(r.risk_score)}">${fmt(r.risk_score)}</b></td>
+      <td style="white-space:nowrap"><span class="meter"><i style="width:${r.risk_score}%;background:${rc(r)}"></i></span><b style="color:${rc(r)}">${fmt(r.risk_score)}</b></td>
       <td><span class="tag ${DEC[r.decision]}">${esc(r.decision)}</span></td><td><span class="tag ${STA[r.status] || "t-grey"}">${esc(r.status)}</span></td></tr>`; }).join("");
   $("rows").querySelectorAll("tr").forEach(tr => tr.onclick = () => openRun(tr.dataset.key));
 }
@@ -348,7 +364,7 @@ function openRun(key) {
         <div class="sm mut">${r.commit ? "commit <code>" + esc(r.commit) + "</code> · " : ""}${esc(r.author)}${r.branch ? " · " + esc(r.branch) : ""}</div></div>
       <button class="b" style="padding:6px 12px" onclick="closeRun()" aria-label="Close">✕</button></div>
     <div style="display:flex;gap:18px;align-items:center;margin-top:14px;flex-wrap:wrap">
-      <div style="font-size:52px;font-weight:800;color:${col(r.risk_score)};line-height:1">${fmt(r.risk_score)}</div>
+      <div style="font-size:52px;font-weight:800;color:${rc(r)};line-height:1">${fmt(r.risk_score)}</div>
       <div><span class="tag ${DEC[r.decision]}" style="font-size:13px">${esc(r.decision)}</span> <span class="tag ${STA[r.status] || "t-grey"}">${esc(r.status)}</span>
         <div class="sm mut" style="margin-top:6px">E ${fmt(rk.evaluation_risk)} · H ${fmt(rk.historical_risk)} · readiness ${fmt(rk.readiness_score)}</div>
         ${r.approved_by ? `<div class="sm" style="margin-top:4px">Approved by <b>${esc(r.approved_by)}</b></div>` : ""}</div></div>
@@ -404,8 +420,26 @@ async function github() {
       <span>${ghTag(r.status, r.conclusion)}</span></div>`).join("") || '<div class="sm mut">No workflow runs yet.</div>';
 }
 
+
+/* ---------- live demo scenarios ---------- */
+const SCEN = [
+  ["safe", "✅", "Safe change", "Edits documentation only. Tests pass, nothing new is found, short history risk.", "AUTO DEPLOY", "#22c55e"],
+  ["risky", "⚠️", "Risky change", "Adds a dependency and an HTTP call without a timeout. Nothing is broken, but a human should look.", "MANUAL APPROVAL", "#f59e0b"],
+  ["dangerous", "⛔", "Dangerous change", "Adds a database lookup built with an f-string: SQL injection, no tests.", "RELEASE BLOCKED", "#ef4444"],
+  ["", "⌨", "Latest commit", "Runs the pipeline on the commit you last made in this repository.", "", "#3b82f6"],
+];
+let activeScen = null;
+function demoCards() {
+  $("demo").innerHTML = SCEN.filter(sc => !CFG.static || sc[4]).map(([id, ic, title, desc, exp, c]) => {
+    const gh = exp && RUNS.slice().reverse().find(r => r.source === "github actions" && r.decision === exp && r.run_url);
+    return `<div class="sce ${activeScen === id && runnerOn ? "active" : ""}" style="--c:${c}"><h4>${ic} ${title}</h4><p>${desc}</p>
+      ${exp ? `<div class="exp">Gate decides: <span class="tag ${DEC[exp]}">${exp}</span></div>` : '<div class="exp">Gate decides from the real change</div>'}
+      ${gh ? `<div class="gh">Same on GitHub: <a href="${esc(gh.run_url)}" target="_blank" rel="noopener">run #${esc(gh.run_number)} ↗</a> <span class="mut">risk ${fmt(gh.risk_score)}</span></div>` : '<div class="gh mut">&nbsp;</div>'}
+      ${CFG.static ? "" : `<button class="b ${id ? "" : "primary"}" data-sc="${id}" ${runnerOn ? "disabled" : ""}>▶ Run ${id ? "this change" : "pipeline"}</button>`}</div>`; }).join("");
+  $("demo").querySelectorAll("button[data-sc]").forEach(b => b.onclick = () => startPipeline(b.dataset.sc));
+}
 /* ---------- local pipeline runner ---------- */
-const STEP_NODE = {"Change Analysis": 0, "Tests & Coverage": 1, "Code Quality (Ruff)": 1, "Security Scan (Bandit)": 1, "ML Risk Model": 2, "Release Readiness": 2, "Risk Gate": 3, "Release": 5};
+const STEP_NODE = {"Code Input": 0, "Change Analysis": 0, "Tests & Coverage": 1, "Code Quality (Ruff)": 1, "Security Scan (Bandit)": 1, "ML Risk Model": 2, "Release Readiness": 2, "Risk Gate": 3, "Release": 5};
 const SICO = {pending: '<span class="mut">○</span>', running: '<span class="spin"></span>', pass: '<span style="color:#4ade80">✔</span>', warn: '<span style="color:#fbbf24;font-weight:900">!</span>', fail: '<span style="color:#f87171">✖</span>'};
 function runnerFlow(s) {
   const info = NODES.map(() => ["idle", "", ""]); let done = 0;
@@ -422,8 +456,8 @@ async function pollRunner() {
   if (!s.started_at) return;
   $("runner").hidden = false; runnerOn = s.running;
   $("runBtn").disabled = s.running; $("runBtn").textContent = s.running ? "Pipeline running…" : "▶ Run pipeline now";
-  $("rn-title").textContent = s.run_key ? "· " + s.run_key : ""; $("rn-time").textContent = (s.running ? "running · " : "finished · ") + s.elapsed + " s";
-  $("rn-steps").innerHTML = s.steps.map(st => `<div class="step ${st.status}"><span class="ico">${SICO[st.status] || ""}</span>${esc(st.name)}${st.detail ? ` <span class="sm mut">· ${esc(st.detail)}</span>` : ""}<span class="sec">${st.seconds != null ? st.seconds + " s" : ""}</span></div>`).join("");
+  $("rn-title").textContent = (s.scenario ? "· " + (SCEN.find(x => x[0] === s.scenario) || [])[2] : "") + (s.run_key ? " · " + s.run_key : ""); $("rn-time").textContent = (s.running ? "running · " : "finished · ") + s.elapsed + " s";
+  $("rn-steps").innerHTML = s.steps.map(st => `<div class="step ${st.status}"><span class="ico">${SICO[st.status] || ""}</span><span>${esc(st.name)}${st.detail ? `<br><span class="sm" style="color:#fbbf24">${esc(st.detail)}</span>` : ""}</span><span class="sec">${st.seconds != null ? st.seconds + " s" : ""}</span></div>`).join("");
   const log = $("rn-log"), stick = log.scrollTop + log.clientHeight >= log.scrollHeight - 30;
   log.innerHTML = s.log.map(l => l.startsWith("$ ") ? `<span class="c">${esc(l)}</span>` : esc(l)).join("\n"); if (stick) log.scrollTop = log.scrollHeight;
   const res = {"DEPLOYED": ["#0f2a1c", "#4ade80", "✔ Gate passed — released automatically"], "WAITING APPROVAL": ["#2b1d08", "#fbbf24", "⚠ Risky change — waiting for manual approval"], "BLOCKED": ["#2a1212", "#f87171", "✖ Release blocked by the risk gate"], "ERROR": ["#2a1212", "#f87171", "Pipeline error — see the log"]}[s.result];
@@ -431,16 +465,16 @@ async function pollRunner() {
   if (s.running) runnerFlow(s);
   return s;
 }
-async function startPipeline() {
-  $("runBtn").disabled = true;
-  const r = await fetch("/api/pipeline/run", {method: "POST"});
+async function startPipeline(scenario) {
+  $("runBtn").disabled = true; activeScen = scenario || ""; runnerOn = true; demoCards();
+  const r = await fetch("/api/pipeline/run", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({scenario: scenario || null})});
   if (r.status === 409) toast("A pipeline run is already in progress");
   else toast("Pipeline started: change analysis → tests → quality → security → ML → risk gate");
   $("runner").hidden = false; $("runner").scrollIntoView({behavior: "smooth", block: "center"});
   follow();
 }
-function follow() { const tick = async () => { const s = await pollRunner(); if (s && s.running) setTimeout(tick, 1000); else { runnerOn = false; await refresh(); } }; tick(); }
-if (!CFG.static) $("runBtn").onclick = startPipeline;
+function follow() { const tick = async () => { const s = await pollRunner(); if (s && s.running) setTimeout(tick, 1000); else { runnerOn = false; await refresh(); if (s && s.run_key) openRun(s.run_key); } }; tick(); }
+if (!CFG.static) $("runBtn").onclick = () => startPipeline("");
 
 /* ---------- main loop ---------- */
 function render(runs) {
@@ -454,7 +488,7 @@ function render(runs) {
   $("k-last2").textContent = last ? `${last.key} · ${ago(last.created_at)}` : "–";
   const fresh = known === null ? new Set() : new Set(runs.filter(r => !known.has(r.key)).map(r => r.key));
   if (!runnerOn) drawFlow(nodeInfo(last), 100);
-  trend(runs); donut(runs); contrib(runs); $("lw").innerHTML = why(last); $("lw-key").textContent = last ? last.key : ""; table(fresh);
+  demoCards(); trend(runs); donut(runs); contrib(runs); $("lw").innerHTML = why(last); $("lw-key").textContent = last ? last.key : ""; table(fresh);
   if (fresh.size) toast(`New run ${last.key}: ${last.decision} (risk ${last.risk_score})`);
   known = new Set(runs.map(r => r.key));
 }

@@ -172,3 +172,24 @@ def test_run_command_handles_missing_program():
 def test_evaluate_syntax_error_blocks():
     e = evaluate_code("def broken(:\n    pass\n")
     assert e["syntax"] == "FAIL" and e["risk"]["decision"] == config.BLOCKED
+
+
+def test_demo_scenario_commits_in_a_temporary_worktree(git_repo, reports, monkeypatch):
+    import time
+
+    import runner
+    repo = os.getcwd()
+    monkeypatch.setattr(runner, "ROOT", __import__("pathlib").Path(repo))
+    show = [sys.executable, "-c", "import subprocess; print(subprocess.check_output(['git', 'log', '-1', '--format=%s']).decode())"]
+    assert runner.start("dangerous", steps=[("Change Analysis", show)])
+    for _ in range(100):
+        if not runner.status()["running"]:
+            break
+        time.sleep(0.1)
+    state = runner.status()
+    assert state["steps"][0]["name"] == "Code Input" and state["steps"][0]["status"] == "pass"
+    assert "Add inventory lookup by SKU" in "\n".join(state["log"])
+    assert not os.path.exists(os.path.join(repo, "inventory_lookup.py"))  # the working folder is never touched
+    assert "riskgate-demo" not in subprocess.run(["git", "worktree", "list"], capture_output=True, text=True).stdout
+    with pytest.raises(ValueError):
+        runner.start("unknown")
