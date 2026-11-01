@@ -60,3 +60,5 @@ git pull                    # brings GitHub Actions runs into the local dashboar
 5. **Dashboard** (`python app.py`, `/dashboard`, after `git pull`): every run with
    its source, score, decision and a link to the GitHub run; approve / reject local runs.
 6. **Code Input** page: paste code → instant score and decision.
+
+Project by Amirtha, MCA, PMIST Thanjavur.
