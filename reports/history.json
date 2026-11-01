@@ -1303,5 +1303,217 @@
   "status": "BLOCKED",
   "id": 5,
   "created_at": "2026-11-01T17:47:14+00:00"
+ },
+ {
+  "source": "github actions",
+  "run_url": "https://github.com/amirthasri0313-svg/Intelligent_CICD_Risk_Gate/actions/runs/41337665062",
+  "run_number": "18",
+  "event": "push",
+  "branch": "master",
+  "actor": "amirthasri0313-svg",
+  "commit_url": "https://github.com/amirthasri0313-svg/Intelligent_CICD_Risk_Gate/commit/2151bb2588c82a03509de0e30156b2f1fa438d14",
+  "commit": "2151bb2588",
+  "message": "Dashboard: push code to GitHub and approve there",
+  "author": "amirthasri0313-svg",
+  "files": [
+   ".gitignore",
+   "README.md",
+   "app.py",
+   "github_live.py",
+   "templates/dashboard.html",
+   "tests/test_app.py"
+  ],
+  "change": {
+   "base": "c9fd3bb511",
+   "head": "2151bb2588",
+   "message": "Dashboard: push code to GitHub and approve there",
+   "author": "amirthasri0313-svg",
+   "commits": 1,
+   "files": [
+    ".gitignore",
+    "README.md",
+    "app.py",
+    "github_live.py",
+    "templates/dashboard.html",
+    "tests/test_app.py"
+   ],
+   "files_changed": 6,
+   "lines_added": 441,
+   "lines_deleted": 497,
+   "directories": 3,
+   "entropy": 0.466,
+   "source_files": [
+    "app.py",
+    "github_live.py"
+   ],
+   "test_files": [
+    "tests/test_app.py"
+   ],
+   "workflow_changed": false,
+   "dependency_changed": false,
+   "change_score": 65
+  },
+  "tests": {
+   "total": 34,
+   "failed": 3,
+   "skipped": 0,
+   "passed": 31,
+   "pass_rate": 0.9118,
+   "coverage": 0.759,
+   "previous_total": null,
+   "removed": 0,
+   "pytest_exit": 1
+  },
+  "quality": {
+   "tool": "ruff",
+   "scope": "changed files",
+   "issues": [],
+   "issue_count": 0,
+   "max_complexity": 18,
+   "syntax_errors": [],
+   "status": "PASS"
+  },
+  "security": {
+   "tool": "bandit",
+   "scope": "changed files",
+   "findings": [],
+   "high": 0,
+   "medium": 0,
+   "low": 0,
+   "status": "PASS"
+  },
+  "ml": {
+   "available": true,
+   "historical_risk": 98.0,
+   "probability": 0.9174,
+   "commit": "2151bb2588",
+   "commit_message": "Dashboard: push code to GitHub and approve there",
+   "commits_scored": 1,
+   "metrics": {
+    "ns": 3,
+    "nd": 3,
+    "nf": 6,
+    "entropy": 0.466,
+    "la": 441,
+    "ld": 497,
+    "lt": 153.333,
+    "fix": 0,
+    "ndev": 2,
+    "age": 0.041,
+    "nuc": 23,
+    "exp": 20,
+    "rexp": 18.644,
+    "sexp": 27,
+    "test_ratio": 0.167,
+    "config_change": 0,
+    "hour": 18,
+    "weekend": 1
+   },
+   "top_features": [
+    [
+     "log_la",
+     "lines added"
+    ],
+    [
+     "test_ratio",
+     "share of test files"
+    ],
+    [
+     "log_nuc",
+     "earlier changes to these files"
+    ],
+    [
+     "log_exp",
+     "author experience"
+    ]
+   ],
+   "trained_on": "18,505 SZZ-labelled commits from Flask, Requests, Werkzeug, Jinja, Click and HTTPX"
+  },
+  "risk": {
+   "risk_score": 83.5,
+   "readiness_score": 16.5,
+   "evaluation_risk": 42.3,
+   "historical_risk": 98.0,
+   "level": "HIGH",
+   "decision": "RELEASE BLOCKED",
+   "blockers": [
+    "3 failing test(s)"
+   ],
+   "guards": [],
+   "factors": [
+    [
+     "Failing tests",
+     26.46,
+     "3 of 34 tests failing"
+    ],
+    [
+     "Change impact",
+     9.75,
+     "change score 65/100, 6 files"
+    ],
+    [
+     "Complexity",
+     4.0,
+     "max cyclomatic complexity 18"
+    ],
+    [
+     "Low coverage",
+     2.05,
+     "coverage 76% (target 80%)"
+    ],
+    [
+     "Tests removed",
+     0.0,
+     "0 tests removed"
+    ],
+    [
+     "Security findings",
+     0.0,
+     "0 high, 0 medium, 0 low"
+    ],
+    [
+     "Code quality",
+     0.0,
+     "0 lint issues"
+    ],
+    [
+     "Source changed without tests",
+     0.0,
+     "tests updated or no source change"
+    ]
+   ],
+   "formula": "R = 0.65 x E 42.3 + 0.35 x H 98.0  -> raised to 83.5 by blocker"
+  },
+  "stages": {
+   "Change Analysis": {
+    "status": "DONE",
+    "detail": "6 files, +441 -497, score 65"
+   },
+   "Tests & Coverage": {
+    "status": "FAIL",
+    "detail": "31/34 passed, coverage 76%"
+   },
+   "Code Quality": {
+    "status": "PASS",
+    "detail": "ruff: 0 issues, max complexity 18"
+   },
+   "Security Scan": {
+    "status": "PASS",
+    "detail": "bandit: 0 high, 0 medium, 0 low"
+   },
+   "ML Risk Model": {
+    "status": "DONE",
+    "detail": "H = 98.0 (p = 0.9174)"
+   },
+   "Risk Gate": {
+    "status": "RELEASE BLOCKED",
+    "detail": "risk 83.5/100"
+   }
+  },
+  "decision": "RELEASE BLOCKED",
+  "risk_score": 83.5,
+  "status": "BLOCKED",
+  "id": 6,
+  "created_at": "2026-11-01T18:39:02+00:00"
  }
 ]
