@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% block title %}Dashboard · Intelligent CI/CD Risk Gate{% endblock %}
+{% block style %}
+.kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-bottom:18px}
+.kpi{background:#fff;border-radius:12px;padding:16px 18px;box-shadow:0 3px 12px rgba(0,0,0,.07)}
+.kpi .l{font-size:12px;color:#6b7280;text-transform:uppercase;letter-spacing:.05em;font-weight:700}
+.kpi .v{font-size:28px;font-weight:800;margin-top:4px}
+.top{display:grid;grid-template-columns:1.5fr 1fr;gap:18px;margin-bottom:18px}
+.live{display:flex;align-items:center;gap:8px;font-size:13px;color:#6b7280}
+.dot{width:9px;height:9px;border-radius:50%;background:#16a34a;animation:p 1.6s infinite}
+@keyframes p{50%{opacity:.25}}
+.stages{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin:14px 0}
+.st{border-radius:10px;padding:10px;background:#f9fafb;border:1px solid #e5e7eb;font-size:12.5px;min-height:92px}
+.st b{display:block;font-size:13px;margin:4px 0}
+.st.ok{border-color:#86efac;background:#f0fdf4}.st.bad{border-color:#fca5a5;background:#fef2f2}.st.warn{border-color:#fcd34d;background:#fffbeb}
+.gauge{display:flex;gap:18px;align-items:center}
+.decision{font-size:22px;font-weight:800}
+tr.new{animation:flash 2.4s ease-out}
+@keyframes flash{0%{background:#dbeafe}100%{background:transparent}}
+.toast{position:fixed;right:20px;bottom:20px;background:#111827;color:#fff;padding:14px 18px;border-radius:10px;font-size:14px;box-shadow:0 8px 30px rgba(0,0,0,.25);opacity:0;transform:translateY(10px);transition:.3s}
+.toast.show{opacity:1;transform:none}
+.empty{padding:40px;text-align:center;color:#6b7280}
+@media(max-width:1000px){.kpis{grid-template-columns:repeat(3,1fr)}.top{grid-template-columns:1fr}.stages{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:560px){.kpis{grid-template-columns:repeat(2,1fr)}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+{% endblock %}
+{% block body %}
+<div class="container">
+  <div style="display:flex;justify-content:space-between;align-items:end;flex-wrap:wrap;gap:10px;margin-bottom:16px">
+    <div><h2 style="font-size:24px">Deployment Risk Dashboard</h2>
+      <p class="muted small">Every GitHub Actions run, local pipeline run and Code Input evaluation.</p></div>
+    <div class="live"><span class="dot"></span><span id="updated">Live · refreshing every 5 s</span></div>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi"><div class="l">Pipeline runs</div><div class="v" id="k-total">0</div></div>
+    <div class="kpi"><div class="l">Deployed</div><div class="v pass" id="k-dep">0</div></div>
+    <div class="kpi"><div class="l">Waiting approval</div><div class="v warning" id="k-wait">0</div></div>
+    <div class="kpi"><div class="l">Blocked</div><div class="v danger" id="k-blk">0</div></div>
+    <div class="kpi"><div class="l">Rejected</div><div class="v" id="k-rej">0</div></div>
+    <div class="kpi"><div class="l">Avg risk score</div><div class="v" id="k-avg">–</div></div>
+  </div>
+
+  <div class="top">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:start;gap:10px;flex-wrap:wrap">
+        <div><h2 style="margin-bottom:4px">Latest run <span id="l-id" class="muted"></span></h2>
+          <div class="small muted" id="l-meta">No runs yet.</div></div>
+        <a id="l-link" class="btn ghost" style="padding:8px 14px" href="#" target="_blank" rel="noopener" hidden>View on GitHub ↗</a>
+      </div>
+      <div class="stages" id="l-stages"></div>
+      <div class="gauge">
+        <svg id="gauge" width="170" height="104" viewBox="0 0 170 104" role="img" aria-label="Risk score"></svg>
+        <div><div class="decision" id="l-dec">–</div><div class="small muted" id="l-status"></div>
+          <div class="small" id="l-why" style="margin-top:8px"></div>
+          <a id="l-open" class="small" href="#" style="display:inline-block;margin-top:8px">Open details →</a></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Risk score trend</h2>
+      <svg id="trend" width="100%" height="230" role="img" aria-label="Risk score of recent runs"></svg>
+      <p class="small muted">Bands: 0–30 auto deploy · 31–70 manual approval · 71–100 blocked</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>All runs</h2>
+    <div class="tbl"><table>
+      <thead><tr><th>#</th><th>Time (IST)</th><th>Source</th><th>Change</th><th>Author</th><th style="text-align:right">Risk</th><th>Decision</th><th>Status</th><th></th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table></div>
+    <div class="empty" id="empty">No runs yet. Push a commit to GitHub, run <code>python pipeline.py</code>, or evaluate code on the Code Input page.</div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const DEC = {"AUTO DEPLOY":"b-ok","MANUAL APPROVAL":"b-warn","RELEASE BLOCKED":"b-bad"};
+const STA = {"DEPLOYED":"b-ok","DEPLOYING":"b-info","WAITING APPROVAL":"b-warn","BLOCKED":"b-bad","REJECTED":"b-grey"};
+const SRC = {"github actions":["GitHub Actions","b-info"],"local pipeline":["Local pipeline","b-grey"],"code input":["Code input","b-grey"]};
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const $ = id => document.getElementById(id);
+const t = iso => iso ? new Date(iso).toLocaleString("en-IN", {timeZone:"Asia/Kolkata", day:"2-digit", month:"short", hour:"2-digit", minute:"2-digit"}) : "";
+const col = s => s <= 30 ? "#16a34a" : s <= 70 ? "#d97706" : "#dc2626";
+let known = null;
+
+function gauge(score) {
+  const r = 64, cx = 85, cy = 88, pt = v => { const a = Math.PI * (1 - v / 100); return [cx + r * Math.cos(a), cy - r * Math.sin(a)]; };
+  const arc = (a, b, c, w, o) => { const [x1, y1] = pt(a), [x2, y2] = pt(b); return `<path d="M${x1} ${y1} A${r} ${r} 0 0 1 ${x2} ${y2}" stroke="${c}" stroke-width="${w}" fill="none" opacity="${o}" stroke-linecap="round"/>`; };
+  $("gauge").innerHTML = arc(0, 30, "#16a34a", 12, .25) + arc(30, 70, "#d97706", 12, .25) + arc(70, 100, "#dc2626", 12, .25) +
+    (score > 0 ? arc(0, Math.min(score, 100), col(score), 12, 1) : "") +
+    `<text x="85" y="82" text-anchor="middle" font-size="30" font-weight="800" fill="#111827">${score.toFixed(1)}</text>` +
+    `<text x="85" y="100" text-anchor="middle" font-size="11" fill="#6b7280">RISK SCORE / 100</text>`;
+}
+
+function trend(runs) {
+  const svg = $("trend"), W = svg.clientWidth || 420, H = 230, L = 30, B = 22, T = 10;
+  const last = runs.slice(-20), y = v => T + (H - T - B) * (1 - v / 100), bw = Math.max(6, Math.min(26, (W - L - 10) / Math.max(1, last.length) - 6));
+  let s = [[0, 30, "#f0fdf4"], [30, 70, "#fffbeb"], [70, 100, "#fef2f2"]].map(([a, b, c]) => `<rect x="${L}" y="${y(b)}" width="${W - L - 4}" height="${y(a) - y(b)}" fill="${c}"/>`).join("");
+  s += [0, 30, 70, 100].map(v => `<line x1="${L}" x2="${W - 4}" y1="${y(v)}" y2="${y(v)}" stroke="#e5e7eb"/><text x="${L - 6}" y="${y(v) + 4}" text-anchor="end" font-size="10" fill="#6b7280">${v}</text>`).join("");
+  last.forEach((r, i) => { const x = L + 6 + i * ((W - L - 10) / last.length);
+    s += `<rect x="${x}" y="${y(r.risk_score)}" width="${bw}" height="${y(0) - y(r.risk_score)}" rx="3" fill="${col(r.risk_score)}"><title>#${r.id} ${esc(r.message)}: ${r.risk_score}</title></rect>`;
+    s += `<text x="${x + bw / 2}" y="${H - 6}" text-anchor="middle" font-size="10" fill="#6b7280">${r.id}</text>`; });
+  svg.innerHTML = s;
+}
+
+function render(runs) {
+  const n = runs.length, cnt = s => runs.filter(r => r.status === s).length;
+  $("k-total").textContent = n; $("k-dep").textContent = cnt("DEPLOYED"); $("k-wait").textContent = cnt("WAITING APPROVAL");
+  $("k-blk").textContent = cnt("BLOCKED"); $("k-rej").textContent = cnt("REJECTED");
+  $("k-avg").textContent = n ? (runs.reduce((a, r) => a + r.risk_score, 0) / n).toFixed(1) : "–";
+  $("empty").hidden = n > 0;
+  const fresh = known === null ? new Set() : new Set(runs.filter(r => !known.has(r.id)).map(r => r.id));
+  $("rows").innerHTML = runs.slice().reverse().map(r => { const [sl, sc] = SRC[r.source] || [r.source, "b-grey"];
+    return `<tr class="${fresh.has(r.id) ? "new" : ""}"><td>${r.id}</td><td class="small">${t(r.created_at)}</td><td><span class="badge ${sc}">${sl}${r.run_number ? " #" + r.run_number : ""}</span></td>
+    <td><code class="small">${esc((r.commit || "").slice(0, 7))}</code> ${esc(r.message)}</td><td>${esc(r.author)}</td>
+    <td style="text-align:right;font-weight:700;color:${col(r.risk_score)}">${r.risk_score.toFixed(1)}</td>
+    <td><span class="badge ${DEC[r.decision]}">${r.decision}</span></td><td><span class="badge ${STA[r.status] || "b-grey"}">${r.status}</span></td>
+    <td class="small"><a href="/run/${r.id}">details</a>${r.run_url ? ` · <a href="${esc(r.run_url)}" target="_blank" rel="noopener">GitHub ↗</a>` : ""}</td></tr>`; }).join("");
+  if (n) {
+    const r = runs[n - 1], [sl] = SRC[r.source] || [r.source];
+    $("l-id").textContent = "#" + r.id;
+    $("l-meta").innerHTML = `${esc(sl)} · <code>${esc((r.commit || "").slice(0, 7))}</code> ${esc(r.message)} · ${esc(r.author)} · ${t(r.created_at)}`;
+    $("l-link").hidden = !r.run_url; if (r.run_url) $("l-link").href = r.run_url;
+    $("l-stages").innerHTML = Object.entries(r.stages || {}).map(([k, s]) => { const st = s.status;
+      const c = ["PASS", "DONE", "AUTO DEPLOY"].includes(st) ? "ok" : ["FAIL", "RELEASE BLOCKED"].includes(st) ? "bad" : st === "MANUAL APPROVAL" ? "warn" : "";
+      return `<div class="st ${c}"><span class="muted">${esc(k)}</span><b>${esc(st)}</b><span class="muted">${esc(s.detail)}</span></div>`; }).join("");
+    gauge(r.risk_score);
+    $("l-dec").innerHTML = `<span class="badge ${DEC[r.decision]}" style="font-size:16px;padding:6px 14px">${r.decision}</span>`;
+    $("l-status").textContent = "Status: " + r.status + (r.approved_by ? " · approved by " + r.approved_by : "");
+    const why = [...(r.risk.blockers || []).map(b => `<div><span class="badge b-bad">Blocker</span> ${esc(b)}</div>`), ...(r.risk.guards || []).map(g => `<div><span class="badge b-warn">Guard</span> ${esc(g)}</div>`)];
+    $("l-why").innerHTML = why.join("") || '<span class="muted">No blockers or guards.</span>';
+    $("l-open").href = "/run/" + r.id;
+  }
+  trend(runs);
+  if (fresh.size) { const r = runs[n - 1]; const el = $("toast"); el.textContent = `New run #${r.id}: ${r.decision} (risk ${r.risk_score})`; el.classList.add("show"); setTimeout(() => el.classList.remove("show"), 4000); }
+  known = new Set(runs.map(r => r.id));
+}
+
+async function refresh() {
+  try { const res = await fetch("/api/history", {cache: "no-store"}); render(await res.json());
+    $("updated").textContent = "Live · updated " + new Date().toLocaleTimeString("en-IN", {hour: "2-digit", minute: "2-digit", second: "2-digit"}); }
+  catch (e) { $("updated").textContent = "Dashboard server not reachable"; }
+}
+refresh(); setInterval(refresh, 5000); window.addEventListener("resize", () => refresh());
+</script>
+{% endblock %}

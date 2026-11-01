@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}Intelligent CI/CD Risk Gate{% endblock %}</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:"Segoe UI",Arial,sans-serif}
+[hidden]{display:none!important}
+body{background:#f4f6f9;color:#1f2937}
+a{color:#2563eb;text-decoration:none}
+.header{background:#111827;color:#fff;padding:18px 40px;display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between}
+.header h1{font-size:22px}.header p{margin-top:4px;color:#9ca3af;font-size:13px}
+.nav{display:flex;gap:6px;flex-wrap:wrap}
+.nav a{color:#d1d5db;padding:8px 14px;border-radius:8px;font-size:14px;font-weight:600}
+.nav a:hover{background:#1f2937;color:#fff}
+.nav a.on{background:#2563eb;color:#fff}
+.container{max-width:1240px;margin:28px auto;padding:0 24px}
+.card{background:#fff;border-radius:12px;box-shadow:0 3px 12px rgba(0,0,0,.07);padding:22px}
+.card h2{font-size:17px;margin-bottom:14px}
+.muted{color:#6b7280}.small{font-size:13px}
+.badge{display:inline-block;padding:4px 11px;border-radius:999px;font-size:12px;font-weight:700;white-space:nowrap}
+.b-ok{background:#dcfce7;color:#166534}.b-warn{background:#fef3c7;color:#92400e}.b-bad{background:#fee2e2;color:#991b1b}
+.b-info{background:#dbeafe;color:#1e40af}.b-grey{background:#e5e7eb;color:#374151}
+.pass{color:#16a34a}.warning{color:#d97706}.danger{color:#dc2626}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:10px 8px;border-bottom:1px solid #e5e7eb;font-size:14px}
+th{font-size:12px;color:#6b7280;text-transform:uppercase;letter-spacing:.04em}
+.tbl{overflow-x:auto}
+code,pre{font-family:Consolas,"Courier New",monospace}
+.btn{display:inline-block;border:0;border-radius:8px;padding:11px 22px;font-size:14px;font-weight:700;cursor:pointer;background:#2563eb;color:#fff}
+.btn:hover{background:#1d4ed8}
+.btn.green{background:#16a34a}.btn.red{background:#dc2626}.btn.ghost{background:#eef2ff;color:#1e40af}
+.footer{text-align:center;padding:24px;color:#6b7280;font-size:13px}
+{% block style %}{% endblock %}
+</style>
+</head>
+<body>
+<div class="header">
+  <div><h1>Intelligent CI/CD Risk Gate</h1><p>Automated Deployment Risk Assessment · DevOps RTE Project</p></div>
+  <nav class="nav">
+    <a href="/" class="{{ 'on' if request.path == '/' or request.path == '/evaluate' }}">Code Input</a>
+    <a href="/dashboard" class="{{ 'on' if request.path.startswith('/dashboard') or request.path.startswith('/run') }}">Dashboard</a>
+    <a href="{{ REPO_URL }}/actions" target="_blank" rel="noopener">GitHub Actions ↗</a>
+  </nav>
+</div>
+{% block body %}{% endblock %}
+<div class="footer">Code Input → Automated Evaluation → Risk Calculation → Risk Gate → Dashboard → Release / Manual Approval</div>
+</body>
+</html>

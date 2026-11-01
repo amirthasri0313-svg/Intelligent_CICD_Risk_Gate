@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Evaluation Results · Intelligent CI/CD Risk Gate{% endblock %}
+{% set r = evaluation.risk %}
+{% set cls = {'AUTO DEPLOY':'b-ok','MANUAL APPROVAL':'b-warn','RELEASE BLOCKED':'b-bad'}[r.decision] %}
+{% block style %}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-bottom:22px}
+.c{background:#fff;border-radius:14px;padding:22px;box-shadow:0 5px 20px rgba(0,0,0,.07);border-top:4px solid #2563eb}
+.c .t{color:#6b7280;font-size:13px;margin-bottom:8px}.c .v{font-size:26px;font-weight:800}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:22px}
+.fx{display:grid;grid-template-columns:1.4fr 1fr 48px;gap:6px 12px;align-items:center;font-size:14px}
+.bar{height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden}.bar i{display:block;height:100%;background:#2563eb}
+.code{background:#111827;border-radius:14px;overflow:hidden}.code h3{background:#1f2937;color:#fff;padding:14px 18px;font-size:15px}
+pre{padding:18px;color:#d1d5db;overflow-x:auto;font-size:13.5px;line-height:1.6}
+.find{padding:8px 0;border-bottom:1px solid #f1f1f1;font-size:14px}
+@media(max-width:850px){.cards,.grid{grid-template-columns:1fr}}
+{% endblock %}
+{% block body %}
+<div class="container">
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:20px">
+    <div><h2 style="font-size:26px">Evaluation Results</h2><p class="muted">Recorded as run #{{ run_id }} on the dashboard.</p></div>
+    <span class="badge {{ cls }}" style="font-size:16px;padding:8px 18px">{{ r.decision }}</span>
+  </div>
+  <div class="cards">
+    {% for key, label in [('syntax','Syntax Check'),('quality','Code Quality'),('security','Security Scan')] %}
+    <div class="c"><div class="t">{{ label }}</div><div class="v {{ 'pass' if evaluation[key]=='PASS' else 'danger' }}">{{ evaluation[key] }}</div></div>
+    {% endfor %}
+    <div class="c" style="border-top-color:{{ '#16a34a' if r.level=='LOW' else '#d97706' if r.level=='MEDIUM' else '#dc2626' }}">
+      <div class="t">Risk Score</div><div class="v">{{ r.risk_score }}<span class="muted" style="font-size:15px">/100</span></div>
+      <div class="small muted">Readiness {{ r.readiness_score }}/100 · {{ r.level }}</div></div>
+  </div>
+  <div class="grid">
+    <div class="card">
+      <h2>Why this decision</h2>
+      {% for b in r.blockers %}<p style="margin-bottom:8px"><span class="badge b-bad">Blocker</span> {{ b }}</p>{% endfor %}
+      {% for g in r.guards %}<p style="margin-bottom:8px"><span class="badge b-warn">Guard</span> {{ g }}</p>{% endfor %}
+      {% if not r.blockers and not r.guards %}<p class="muted" style="margin-bottom:10px">No blockers or policy guards.</p>{% endif %}
+      <div class="fx" style="margin-top:12px">
+        {% for n, p, d in r.factors %}<span>{{ n }}<br><span class="small muted">{{ d }}</span></span><span class="bar"><i style="width:{{ [p*4,100]|min }}%"></i></span><b style="text-align:right">{{ p }}</b>{% endfor %}
+      </div>
+      <p class="small muted" style="margin-top:12px"><code>{{ r.formula }}</code></p>
+    </div>
+    <div class="card">
+      <h2>Findings</h2>
+      {% for f in evaluation.security_detail.findings %}
+      <div class="find"><span class="badge {{ 'b-bad' if f.severity=='HIGH' else 'b-warn' if f.severity=='MEDIUM' else 'b-grey' }}">{{ f.severity }}</span> line {{ f.line }} · {{ f.test_id }} {{ f.issue }}</div>
+      {% endfor %}
+      {% for i in evaluation.quality_detail.issues %}
+      <div class="find"><span class="badge b-info">{{ i.code }}</span> line {{ i.line }} · {{ i.message }}</div>
+      {% endfor %}
+      {% for e in evaluation.quality_detail.syntax_errors %}<div class="find"><span class="badge b-bad">SYNTAX</span> {{ e.message }}</div>{% endfor %}
+      {% if not evaluation.security_detail.findings and not evaluation.quality_detail.issues %}<p class="muted">No security or quality findings.</p>{% endif %}
+      <p class="small muted" style="margin-top:12px">Tools: {{ evaluation.quality_detail.tool }} (quality), {{ evaluation.security_detail.tool }} (security) · max complexity {{ evaluation.quality_detail.max_complexity }}</p>
+    </div>
+  </div>
+  <div class="code" style="margin-bottom:22px"><h3>Submitted Source Code</h3><pre>{{ code }}</pre></div>
+  <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+    <a class="btn ghost" href="/">← Evaluate Another Code</a>
+    <a class="btn" href="/run/{{ run_id }}">Open run #{{ run_id }} on dashboard</a>
+  </div>
+</div>
+{% endblock %}

@@ -1,78 +1,128 @@
 name: Intelligent CI/CD Risk Gate
 
+# Code Input (push / pull request) -> Automated Evaluation -> Risk Calculation
+# -> Risk Gate -> Dashboard (reports/history.json) -> Release / Manual Approval
 on:
   push:
     branches: [master]
   pull_request:
     branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   risk-gate:
+    name: Evaluate & Risk Gate
     runs-on: ubuntu-latest
-
+    concurrency:
+      group: risk-gate-${{ github.ref }}
+      cancel-in-progress: false
+    outputs:
+      decision: ${{ steps.gate.outputs.decision }}
+      risk_score: ${{ steps.gate.outputs.risk_score }}
+      run_id: ${{ steps.gate.outputs.run_id }}
+    env:
+      BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
     steps:
-      - name: Checkout code
+      - name: "Stage 1 · Code input: checkout full history"
         uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.13"
+          cache: pip
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run Tests
+      - name: "Stage 1 · Change analysis"
+        run: python change_analyzer.py
+
+      - name: "Stage 2 · Automated tests and coverage"
+        run: python run_tests.py
+
+      - name: "Stage 2 · Code quality (Ruff)"
+        run: python quality_check.py
+
+      - name: "Stage 2 · Security scan (Bandit)"
+        run: python security_check.py
+
+      - name: "Stage 3 · ML historical risk"
+        run: python ml_risk.py
+
+      - name: "Stage 3 · Risk calculation"
+        run: python release_readiness.py
+
+      - name: "Stage 4 · Risk gate decision"
+        id: gate
+        run: python risk_gate.py
+
+      - name: "Stage 5 · Save run to dashboard history"
+        if: always() && github.event_name != 'pull_request' && hashFiles('reports/history.json') != ''
         run: |
-          pytest
+          git config user.name "risk-gate-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f reports/history.json
+          git commit -m "Risk gate: record pipeline run ${{ github.run_number }} [skip ci]" || exit 0
+          for i in 1 2 3; do git pull --rebase origin "${{ github.ref_name }}" && git push && break; sleep 3; done
 
-      - name: Change Analysis
+      - name: Upload stage reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: risk-reports-${{ github.run_number }}
+          path: reports/
+
+  deploy:
+    name: "Stage 6 · Auto deploy (low risk)"
+    needs: risk-gate
+    if: needs.risk-gate.outputs.decision == 'AUTO DEPLOY' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Deploy application
+        run: python deploy.py --run-id ${{ needs.risk-gate.outputs.run_id }}
+      - name: Record deployment on dashboard
         run: |
-          python change_analyzer.py
+          git config user.name "risk-gate-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f reports/history.json
+          git commit -m "Risk gate: run ${{ needs.risk-gate.outputs.run_id }} deployed [skip ci]" || exit 0
+          for i in 1 2 3; do git pull --rebase origin "${{ github.ref_name }}" && git push && break; sleep 3; done
 
-      - name: Code Quality Check
+  deploy-after-approval:
+    name: "Stage 6 · Manual approval, then deploy (medium risk)"
+    needs: risk-gate
+    if: needs.risk-gate.outputs.decision == 'MANUAL APPROVAL' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    # Settings -> Environments -> production-approval -> Required reviewers
+    environment: production-approval
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Deploy application (approved by reviewer)
+        run: python deploy.py --run-id ${{ needs.risk-gate.outputs.run_id }} --approved-by "GitHub reviewer"
+      - name: Record deployment on dashboard
         run: |
-          python quality_check.py
-
-      - name: Security Check
-        run: |
-          python security_check.py
-
-      - name: Release Readiness
-        run: |
-          python release_readiness.py
-
-      - name: Risk Gate
-        run: |
-          score=$(cat readiness_score.txt)
-
-          echo "================================="
-          echo "Release Readiness Score: $score"
-          echo "================================="
-
-          python risk_gate.py "$score"
-
-      - name: Deployment Decision
-        run: |
-          score=$(cat readiness_score.txt)
-
-          echo "================================="
-          echo "DEPLOYMENT DECISION"
-          echo "================================="
-
-          if [ "$score" -ge 75 ]; then
-            echo "LOW RISK - AUTO DEPLOY"
-            python deploy.py
-
-          elif [ "$score" -ge 50 ]; then
-            echo "MEDIUM RISK - MANUAL APPROVAL REQUIRED"
-            echo "Deployment will not run automatically."
-
-          else
-            echo "HIGH RISK - RELEASE BLOCKED"
-            exit 1
-          fi
+          git config user.name "risk-gate-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f reports/history.json
+          git commit -m "Risk gate: run ${{ needs.risk-gate.outputs.run_id }} approved and deployed [skip ci]" || exit 0
+          for i in 1 2 3; do git pull --rebase origin "${{ github.ref_name }}" && git push && break; sleep 3; done

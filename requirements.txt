@@ -1,4 +1,8 @@
 Flask
 pytest
+pytest-cov
 bandit
 ruff
+numpy>=2.0
+scikit-learn==1.6.1
+joblib

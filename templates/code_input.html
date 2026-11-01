@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}Code Input · Intelligent CI/CD Risk Gate{% endblock %}
+{% block style %}
+textarea{width:100%;height:340px;padding:16px;border:1px solid #d1d5db;border-radius:8px;resize:vertical;font-family:Consolas,monospace;font-size:14px;background:#111827;color:#f9fafb;outline:none}
+textarea:focus{border:2px solid #2563eb}
+.samples{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+.samples button{border:1px solid #d1d5db;background:#fff;border-radius:999px;padding:6px 14px;font-size:13px;cursor:pointer}
+.samples button:hover{border-color:#2563eb;color:#2563eb}
+.row{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-top:16px}
+.info{margin-top:20px;padding:14px;background:#eff6ff;border-left:4px solid #2563eb;color:#1e40af;border-radius:5px;font-size:14px}
+{% endblock %}
+{% block body %}
+<div class="container">
+  <div class="card">
+    <h2 style="font-size:22px">Submit Code for Evaluation</h2>
+    <p class="muted" style="margin-bottom:18px">Paste Python code. It goes through syntax, code quality (Ruff), security (Bandit) and complexity checks, gets a risk score and a gate decision, and is recorded on the dashboard.</p>
+    <p class="small muted" style="margin-bottom:6px">Try a sample:</p>
+    <div class="samples">
+      <button type="button" data-s="safe">Safe tested function</button>
+      <button type="button" data-s="sql">SQL injection</button>
+      <button type="button" data-s="secret">Hard-coded password</button>
+      <button type="button" data-s="tls">TLS verification off</button>
+      <button type="button" data-s="syntax">Syntax error</button>
+    </div>
+    <form method="POST" action="/evaluate">
+      <label for="code" style="font-weight:700;display:block;margin-bottom:8px">Source Code</label>
+      <textarea id="code" name="code" placeholder="Paste your Python code here..." required></textarea>
+      <div class="row">
+        <span class="small muted">Gate bands: risk 0–30 auto deploy · 31–70 manual approval · 71–100 blocked</span>
+        <button class="btn" type="submit">Evaluate Code</button>
+      </div>
+    </form>
+    <div class="info"><strong>Every git push</strong> runs the same checks plus the test suite and the ML risk model in GitHub Actions. See the <a href="/dashboard">dashboard</a>.</div>
+  </div>
+</div>
+<script>
+const S = {
+safe: `def discount_rate(quantity: int, member: bool = False) -> float:
+    if quantity < 0:
+        raise ValueError("quantity must be non-negative")
+    rate = 0.10 if quantity >= 50 else 0.05 if quantity >= 20 else 0.0
+    return round(rate + (0.02 if member else 0.0), 4)
+`,
+sql: `import sqlite3
+
+
+def get_item(con: sqlite3.Connection, sku: str):
+    query = f"SELECT sku, name, price FROM items WHERE sku = '{sku}'"
+    return con.execute(query).fetchone()
+`,
+secret: `import smtplib
+
+SMTP_HOST = "smtp.example.com"
+smtp_password = "Adm1n@2026"
+
+
+def send_alert(to: str, text: str) -> None:
+    with smtplib.SMTP(SMTP_HOST, 587) as s:
+        s.starttls()
+        s.login("alerts", smtp_password)
+        s.sendmail("alerts@example.com", to, text)
+`,
+tls: `import requests
+
+
+def fetch_prices(url: str) -> dict:
+    response = requests.get(url, timeout=10, verify=False)
+    response.raise_for_status()
+    return response.json()
+`,
+syntax: `def total(items):
+    return sum(i["price"] for i in items
+
+print(total([]))
+`};
+document.querySelectorAll('.samples button').forEach(b => b.addEventListener('click', () => { document.getElementById('code').value = S[b.dataset.s]; }));
+</script>
+{% endblock %}

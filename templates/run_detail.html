@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}Run #{{ run.id }} · Intelligent CI/CD Risk Gate{% endblock %}
+{% set r = run.risk %}
+{% set dcls = {'AUTO DEPLOY':'b-ok','MANUAL APPROVAL':'b-warn','RELEASE BLOCKED':'b-bad'}[run.decision] %}
+{% set scls = {'DEPLOYED':'b-ok','DEPLOYING':'b-info','WAITING APPROVAL':'b-warn','BLOCKED':'b-bad','REJECTED':'b-grey'}.get(run.status, 'b-grey') %}
+{% block style %}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}
+.fx{display:grid;grid-template-columns:1.4fr 1fr 48px;gap:6px 12px;align-items:center;font-size:14px}
+.bar{height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden}.bar i{display:block;height:100%;background:#2563eb}
+.stages{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.st{border-radius:10px;padding:12px;background:#f9fafb;border:1px solid #e5e7eb;font-size:13px}
+.st b{display:block;margin:3px 0}
+.st.ok{border-color:#86efac;background:#f0fdf4}.st.bad{border-color:#fca5a5;background:#fef2f2}.st.warn{border-color:#fcd34d;background:#fffbeb}
+form{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+input{font:inherit;border:1px solid #d1d5db;border-radius:8px;padding:10px 12px;flex:1 1 180px}
+.big{font-size:44px;font-weight:800}
+@media(max-width:850px){.grid{grid-template-columns:1fr}.stages{grid-template-columns:1fr 1fr}}
+{% endblock %}
+{% block body %}
+<div class="container">
+  <p><a href="/dashboard">← Dashboard</a></p>
+  <div class="card" style="margin-top:10px;display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;align-items:center">
+    <div>
+      <div class="small muted">Run #{{ run.id }} · {{ run.source }}{% if run.run_number %} #{{ run.run_number }}{% endif %} · {{ run.created_at }}</div>
+      <h2 style="font-size:22px;margin:6px 0">{{ run.message }}</h2>
+      <div class="small muted">commit <code>{{ run.commit }}</code> · {{ run.author }}{% if run.branch %} · branch {{ run.branch }}{% endif %}</div>
+      <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+        <span class="badge {{ dcls }}">{{ run.decision }}</span><span class="badge {{ scls }}">{{ run.status }}</span>
+        {% if run.run_url %}<a class="badge b-info" href="{{ run.run_url }}" target="_blank" rel="noopener">GitHub Actions run ↗</a>{% endif %}
+      </div>
+    </div>
+    <div style="text-align:center"><div class="small muted">Risk score</div><div class="big" style="color:{{ '#16a34a' if run.risk_score<=30 else '#d97706' if run.risk_score<=70 else '#dc2626' }}">{{ run.risk_score }}</div>
+      <div class="small muted">E {{ r.evaluation_risk }} · H {{ r.historical_risk if r.historical_risk is not none else 'n/a' }} · readiness {{ r.readiness_score }}</div></div>
+  </div>
+
+  <div class="card" style="margin-top:18px">
+    <h2>Release / manual approval</h2>
+    {% if run.status == 'WAITING APPROVAL' and run.source != 'github actions' %}
+      <p class="muted">This change is waiting for a reviewer.</p>
+      <form method="post" action="/run/{{ run.id }}/review">
+        <input name="reviewer" placeholder="Reviewer name" required aria-label="Reviewer name">
+        <input name="note" placeholder="Review note" aria-label="Review note">
+        <button class="btn green" name="action" value="approve">Approve &amp; deploy</button>
+        <button class="btn red" name="action" value="reject">Reject</button>
+      </form>
+    {% elif run.status == 'WAITING APPROVAL' %}
+      <p>Waiting for a reviewer in GitHub. Open the run and press <b>Review deployments → Approve and deploy</b>.</p>
+      <p style="margin-top:10px"><a class="btn" href="{{ run.run_url }}" target="_blank" rel="noopener">Approve on GitHub ↗</a></p>
+    {% elif run.status == 'DEPLOYED' %}
+      <p><span class="badge b-ok">Deployed</span> at {{ run.deployed_at }}{% if run.approved_by %} after approval by <b>{{ run.approved_by }}</b>{% if run.review_note %} (“{{ run.review_note }}”){% endif %}{% endif %}.</p>
+    {% elif run.status == 'DEPLOYING' %}
+      <p><span class="badge b-info">Deploying</span> Low risk: the deploy job runs automatically.</p>
+    {% elif run.status == 'REJECTED' %}
+      <p><span class="badge b-grey">Rejected</span> by <b>{{ run.rejected_by }}</b>{% if run.review_note %}: “{{ run.review_note }}”{% endif %}</p>
+    {% else %}
+      <p><span class="badge b-bad">Blocked</span> Deployment stopped. Fix the blockers and push again.</p>
+    {% endif %}
+  </div>
+
+  <div class="card" style="margin-top:18px">
+    <h2>Pipeline stages</h2>
+    <div class="stages">
+      {% for name, s in run.stages.items() %}
+      {% set c = 'ok' if s.status in ['PASS','DONE','AUTO DEPLOY'] else 'bad' if s.status in ['FAIL','RELEASE BLOCKED'] else 'warn' if s.status == 'MANUAL APPROVAL' else '' %}
+      <div class="st {{ c }}"><span class="muted">{{ name }}</span><b>{{ s.status }}</b><span class="muted">{{ s.detail }}</span></div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h2>Why this decision</h2>
+      {% for b in r.blockers %}<p style="margin-bottom:8px"><span class="badge b-bad">Blocker</span> {{ b }}</p>{% endfor %}
+      {% for g in r.guards %}<p style="margin-bottom:8px"><span class="badge b-warn">Policy guard</span> {{ g }}</p>{% endfor %}
+      {% if not r.blockers and not r.guards %}<p class="muted" style="margin-bottom:8px">No blockers or policy guards.</p>{% endif %}
+      <div class="fx" style="margin-top:12px">
+        {% for n, p, d in r.factors %}<span>{{ n }}<br><span class="small muted">{{ d }}</span></span><span class="bar"><i style="width:{{ [p*4,100]|min }}%"></i></span><b style="text-align:right">{{ p }}</b>{% endfor %}
+      </div>
+      <p class="small muted" style="margin-top:12px"><code>{{ r.formula }}</code></p>
+    </div>
+    <div class="card">
+      <h2>Findings</h2>
+      {% for f in run.security.findings %}
+      <p style="margin-bottom:8px;font-size:14px"><span class="badge {{ 'b-bad' if f.severity=='HIGH' else 'b-warn' if f.severity=='MEDIUM' else 'b-grey' }}">{{ f.severity }}</span> <code>{{ f.file }}:{{ f.line }}</code> {{ f.test_id }} {{ f.issue }}</p>
+      {% endfor %}
+      {% for i in run.quality.issues[:15] %}
+      <p style="margin-bottom:8px;font-size:14px"><span class="badge b-info">{{ i.code }}</span> <code>{{ i.file }}:{{ i.line }}</code> {{ i.message }}</p>
+      {% endfor %}
+      {% if not run.security.findings and not run.quality.issues %}<p class="muted">No security or quality findings.</p>{% endif %}
+      {% if run.ml and run.ml.available %}
+      <h2 style="margin-top:18px">ML historical risk</h2>
+      <p style="font-size:14px">H = <b>{{ run.ml.historical_risk }}</b> (probability {{ run.ml.probability }}) for commit <code>{{ run.ml.commit }}</code>.</p>
+      <p class="small muted" style="margin-top:6px">Model trained on {{ run.ml.trained_on }}. Strongest signals: {% for f, h in run.ml.top_features %}{{ h }}{% if not loop.last %}, {% endif %}{% endfor %}.</p>
+      {% endif %}
+      {% if run.files %}<h2 style="margin-top:18px">Changed files</h2>{% for f in run.files %}<div class="small"><code>{{ f }}</code></div>{% endfor %}{% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

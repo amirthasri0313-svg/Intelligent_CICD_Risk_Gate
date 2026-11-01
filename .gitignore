@@ -1,5 +1,15 @@
 __pycache__/
 *.pyc
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.coverage
+# per-run stage reports (history.json is kept: it feeds the dashboard)
+reports/*.json
+reports/*.xml
+!reports/history.json
+# files from the first version
 readiness_score.txt
 change_score.txt
 security_result.txt

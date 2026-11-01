@@ -1,0 +1,7 @@
+[run]
+omit =
+    tests/*
+    pipeline.py
+    run_tests.py
+    venv/*
+    .venv/*
