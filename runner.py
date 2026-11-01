@@ -10,6 +10,7 @@ runs the whole pipeline on it, exactly as GitHub Actions would after a push.
 """
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -22,7 +23,7 @@ from config import MODEL_FILE, REPORT_DIR, ROOT, SITE_DIR, report_path
 
 _lock = threading.Lock()
 _state = {"running": False, "steps": [], "log": [], "result": None, "run_key": None,
-          "started_at": None, "finished_at": None, "scenario": None}
+          "started_at": None, "finished_at": None, "scenario": None, "custom": None}
 
 SCENARIOS = {
     "safe": {
@@ -77,11 +78,14 @@ def _git(args, cwd, env=None):
 
 def _prepare_scenario(name, env):
     """Commit the scenario's change on top of HEAD in a temporary git worktree."""
-    sc = SCENARIOS[name]
+    sc = SCENARIOS.get(name) or _state["custom"]
     work = Path(tempfile.mkdtemp(prefix="riskgate-demo-")) / "repo"
     r = _git(["worktree", "add", "--detach", str(work), "HEAD"], ROOT)
     if r.returncode:
         raise RuntimeError(r.stderr.strip() or "git worktree failed")
+    genv = dict(env, GIT_AUTHOR_NAME="Demo developer", GIT_AUTHOR_EMAIL="demo@example.com",
+                GIT_COMMITTER_NAME="Demo developer", GIT_COMMITTER_EMAIL="demo@example.com")
+    _snapshot_working_copy(work, genv)
     _log(f"Code input: new commit \"{sc['message']}\"")
     for rel, text in sc["files"].items():
         path = work / rel
@@ -98,6 +102,20 @@ def _prepare_scenario(name, env):
     if r.returncode:
         raise RuntimeError(r.stderr.strip() or "git commit failed")
     return work
+
+
+def _snapshot_working_copy(work, genv):
+    """Start from the files as they are in the project folder now (not the last commit),
+    so the demo change is the only difference the pipeline sees."""
+    tracked = _git(["ls-files"], ROOT).stdout.splitlines()
+    for rel in tracked:
+        src = ROOT / rel
+        if src.is_file():
+            dst = work / rel
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(src, dst)
+    _git(["add", "-A"], work, genv)
+    _git(["commit", "-q", "--allow-empty", "-m", "Working copy"], work, genv)
 
 
 def _cleanup(work):
@@ -186,9 +204,28 @@ def _finish_release(code, env):
     release["seconds"] = round(time.time() - release["started"], 1)
 
 
-def start(scenario=None, steps=None):
+FILENAME = re.compile(r"^[A-Za-z_][A-Za-z0-9_]{0,40}\.py$")
+
+
+def custom_change(code, filename="my_change.py", message=""):
+    """A change typed on the dashboard: one Python file committed like a normal push."""
+    code = (code or "").replace("\r\n", "\n")
+    if not code.strip():
+        raise ValueError("Paste some Python code first")
+    if len(code) > 20000:
+        raise ValueError("Code is too long (max 20,000 characters)")
+    filename = (filename or "my_change.py").strip()
+    if not FILENAME.match(filename):
+        raise ValueError("File name must look like my_module.py (letters, digits, underscore)")
+    message = (message or "").strip()[:80] or f"Add {filename}"
+    return {"title": "Your code", "message": message, "files": {filename: code if code.endswith("\n") else code + "\n"}}
+
+
+def start(scenario=None, steps=None, custom=None):
     """Start a pipeline run; returns False when one is already running."""
-    if scenario and scenario not in SCENARIOS:
+    if custom:
+        scenario = "custom"
+    elif scenario and scenario not in SCENARIOS:
         raise ValueError(f"unknown scenario {scenario}")
     with _lock:
         if _state["running"]:
@@ -196,13 +233,14 @@ def start(scenario=None, steps=None):
         steps = steps or default_steps()
         first = [{"name": "Code Input", "cmd": [], "status": "pending"}] if scenario else []
         _state.update(running=True, log=[], result=None, run_key=None, started_at=time.time(), finished_at=None,
-                      scenario=scenario, steps=first + [{"name": n, "cmd": c, "status": "pending"} for n, c in steps])
+                      scenario=scenario, custom=custom, steps=first + [{"name": n, "cmd": c, "status": "pending"} for n, c in steps])
     threading.Thread(target=_worker, args=(scenario,), daemon=True).start()
     return True
 
 
 def status():
     s = dict(_state)
+    s.pop("custom", None)
     s["steps"] = [{k: v for k, v in st.items() if k not in ("cmd", "started")} for st in _state["steps"]]
     s["log"] = _state["log"][-60:]
     s["elapsed"] = round((s["finished_at"] or time.time()) - s["started_at"], 1) if s["started_at"] else 0

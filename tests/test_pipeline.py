@@ -193,3 +193,20 @@ def test_demo_scenario_commits_in_a_temporary_worktree(git_repo, reports, monkey
     assert "riskgate-demo" not in subprocess.run(["git", "worktree", "list"], capture_output=True, text=True).stdout
     with pytest.raises(ValueError):
         runner.start("unknown")
+
+
+def test_demo_uses_current_files_not_last_commit(git_repo, reports, monkeypatch):
+    import time
+
+    import runner
+    repo = os.getcwd()
+    monkeypatch.setattr(runner, "ROOT", __import__("pathlib").Path(repo))
+    with open(os.path.join(repo, "app.py"), "w") as fh:
+        fh.write("x = 'uncommitted'\n")
+    show = [sys.executable, "-c", "print(open('app.py').read())"]
+    assert runner.start("safe", steps=[("Change Analysis", show)])
+    for _ in range(100):
+        if not runner.status()["running"]:
+            break
+        time.sleep(0.1)
+    assert "uncommitted" in "\n".join(runner.status()["log"])

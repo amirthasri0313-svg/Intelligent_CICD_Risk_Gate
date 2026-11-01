@@ -109,10 +109,11 @@ function flow(states) {
 function flowFromRun(r) {
   if (!r) return flow([]);
   const ts = r.tests || {}, se = r.security || {}, rk = r.risk || {};
-  const bad = ts.failed > 0 || se.high > 0 || Object.values(r.stages || {}).some(s => s.status === "FAIL");
+  const bad = ts.failed > 0 || se.high > 0 || (rk.blockers || []).length > 0;
   const g = {"AUTO DEPLOY": "ok", "MANUAL APPROVAL": "warn", "RELEASE BLOCKED": "bad"}[r.decision];
-  const rel = {"DEPLOYED": ["ok", "Deployed"], "WAITING APPROVAL": ["warn", "Needs approval"], "BLOCKED": ["bad", "Not released"], "REJECTED": ["bad", "Rejected"], "DEPLOYING": ["run", "Deploying"]}[r.status] || ["", r.status];
-  flow([["ok", r.commit ? esc(r.commit.slice(0, 7)) : "code"], [bad ? "bad" : "ok", bad ? "Issues found" : "All checks pass"],
+  const rel = {"DEPLOYED": ["ok", r.approved_by ? "Approved by " + esc(r.approved_by) : "Deployed"], "WAITING APPROVAL": ["warn", "Needs approval"], "BLOCKED": ["bad", "Not released"], "REJECTED": ["bad", "Rejected by " + esc(r.rejected_by || "reviewer")], "DEPLOYING": ["run", "Deploying"]}[r.status] || ["", r.status];
+  const warn = !bad && (se.medium > 0 || (rk.guards || []).length > 0);
+  flow([["ok", r.commit ? esc(r.commit.slice(0, 7)) : "code"], [bad ? "bad" : warn ? "warn" : "ok", bad ? "Issues found" : warn ? "Needs a look" : "All checks pass"],
         [g, "Risk " + r.risk_score], [g, esc(r.decision)], ["ok", "Recorded"], rel]);
 }
 function flowFromRunner(s) {
@@ -131,7 +132,7 @@ function result(r, ghReview) {
   shown = r.key; $("rkey").textContent = "· " + (SRC[r.source] || r.source) + " · " + (r.message || "");
   const rk = r.risk || {}, findings = (r.security || {}).findings || [];
   const review = ghReview != null ? ghReview : r.status === "WAITING APPROVAL" ? (r.key.startsWith("local-") && !CFG.static
-    ? `<div class="rv"><input id="rv-name" placeholder="Reviewer name" aria-label="Reviewer name"><button class="btn green" onclick="review('approve')">Approve &amp; deploy</button><button class="btn red" onclick="review('reject')">Reject</button></div>`
+    ? `<div class="rv"><input id="rv-name" placeholder="Reviewer name" aria-label="Reviewer name"><input id="rv-note" placeholder="Comment" aria-label="Review comment"><button class="btn green" onclick="review('approve')">✔ Approve &amp; deploy</button><button class="btn red" onclick="review('reject')">✖ Reject</button></div>`
     : `<div class="rv"><a class="btn" href="${esc(r.run_url)}" target="_blank" rel="noopener">Approve on GitHub ↗</a></div>`) : "";
   $("result").innerHTML = `<div class="res">
     <div class="score"><div class="v" style="color:${CLR[r.decision]}">${r.risk_score}</div><div class="l">RISK SCORE / 100</div>
@@ -144,12 +145,14 @@ function result(r, ghReview) {
       ${findings.slice(0, 5).map(f => `<div class="small"><code>${esc(f.file)}:${esc(f.line)}</code> ${esc(f.severity)} · ${esc(f.issue)}</div>`).join("")}
       <div class="fx">${(rk.factors || []).filter(f => f[1] > 0).map(([n, p, d]) => `<span>${esc(n)} <span class="muted small">· ${esc(d)}</span></span><span class="bar"><i style="width:${Math.min(100, p * 4)}%"></i></span><b style="text-align:right">${p}</b>`).join("")}</div>
       <p class="small muted" style="margin-top:10px">R = 0.65 × E ${rk.evaluation_risk ?? "–"} + 0.35 × H ${rk.historical_risk ?? "–"}${r.run_url ? ` · <a href="${esc(r.run_url)}" target="_blank" rel="noopener">GitHub run ↗</a>` : ""}</p>
+      ${r.approved_by ? `<div class="rv"><span class="badge b-ok" style="font-size:14px">✔ Approved by ${esc(r.approved_by)} — deployed</span>${r.review_note ? ` <span class="small muted">“${esc(r.review_note)}”</span>` : ""}</div>` : ""}
+      ${r.status === "REJECTED" ? `<div class="rv"><span class="badge b-bad" style="font-size:14px">✖ Rejected by ${esc(r.rejected_by || "reviewer")} — not deployed</span>${r.review_note ? ` <span class="small muted">“${esc(r.review_note)}”</span>` : ""}</div>` : ""}
       ${review}
     </div></div>`;
   flowFromRun(r); table();
 }
 async function review(action) {
-  const body = new URLSearchParams({action, reviewer: ($("rv-name") || {}).value || "Reviewer"});
+  const body = new URLSearchParams({action, reviewer: ($("rv-name") || {}).value || "Reviewer", note: ($("rv-note") || {}).value || ""});
   await fetch(`/run/${shown}/review`, {method: "POST", body, headers: {"Accept": "application/json"}});
   lastSig = ""; await refresh(true);
 }
@@ -181,10 +184,10 @@ async function refresh(keep) {
 
 /* ---- run code through the pipeline ---- */
 const SAMPLES = {
-  "Safe code": ["discount.py", 'def discount(price: float, percent: float) -> float:\n    return round(price * (1 - percent / 100), 2)\n'],
-  "SQL injection": ["orders.py", 'def find_orders(con, customer):\n    return con.execute(f"SELECT * FROM orders WHERE customer = \'{customer}\'").fetchall()\n'],
-  "Hard-coded password": ["db_config.py", 'DB_USER = "admin"\npassword = "Admin@123"\n'],
-  "No timeout": ["weather.py", 'import requests\n\n\ndef today(city):\n    return requests.get("https://api.example.com/weather", params={"q": city}).json()\n'],
+  "✅ Auto deploy": ["billing.py", 'def calculate_total(price: float, quantity: int) -> float:\n    """Return the total cost of an order."""\n    return round(price * quantity, 2)\n\n\ndef apply_discount(total: float, percent: float) -> float:\n    """Return the total after a percentage discount."""\n    return round(total * (1 - percent / 100), 2)\n'],
+  "⚠️ Manual approval": ["weather.py", 'import requests\n\n\ndef today(city):\n    return requests.get("https://api.example.com/weather", params={"q": city}).json()\n'],
+  "⛔ Blocked: SQL injection": ["orders.py", 'def find_orders(con, customer):\n    return con.execute(f"SELECT * FROM orders WHERE customer = \'{customer}\'").fetchall()\n'],
+  "⛔ Blocked: password": ["db_config.py", 'DB_USER = "admin"\npassword = "Admin@123"\n'],
 };
 
 /* ---- push the code to GitHub and follow the real workflow run ---- */
