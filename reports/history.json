@@ -854,8 +854,10 @@
   },
   "decision": "AUTO DEPLOY",
   "risk_score": 7.8,
-  "status": "DEPLOYING",
+  "status": "DEPLOYED",
   "id": 3,
-  "created_at": "2026-11-01T15:39:14+00:00"
+  "created_at": "2026-11-01T15:39:14+00:00",
+  "deployed_at": "2026-11-01T16:29:38+00:00",
+  "deploy_url": "https://github.com/amirthasri0313-svg/Intelligent_CICD_Risk_Gate/actions/runs/41322271935"
  }
 ]
