@@ -1,0 +1,444 @@
+[
+ {
+  "source": "github actions",
+  "run_url": "https://github.com/amirthasri0313-svg/Intelligent_CICD_Risk_Gate/actions/runs/41318486311",
+  "run_number": "13",
+  "event": "push",
+  "branch": "master",
+  "actor": "amirthasri0313-svg",
+  "commit_url": "https://github.com/amirthasri0313-svg/Intelligent_CICD_Risk_Gate/commit/54ad72ceaa38f9fa3794cc69de6b71274aed91b3",
+  "commit": "54ad72ceaa",
+  "message": "Upgrade to intelligent risk gate: tests, coverage, ML risk, live dashboard",
+  "author": "amirthasri0313-svg",
+  "files": [
+   ".coveragerc",
+   ".github/workflows/ci.yml",
+   ".gitignore",
+   "README.md",
+   "app.py",
+   "change_analyzer.py",
+   "config.py",
+   "deploy.py",
+   "evaluation_engine.py",
+   "history.py",
+   "ml_risk.py",
+   "model/jit_model.joblib",
+   "pipeline.py",
+   "quality_check.py",
+   "release_readiness.py",
+   "requirements.txt",
+   "risk_gate.py",
+   "ruff.toml",
+   "run_tests.py",
+   "security_check.py",
+   "static_analysis.py",
+   "templates/base.html",
+   "templates/code_input.html",
+   "templates/dashboard.html",
+   "templates/evaluation_result.html",
+   "templates/run_detail.html",
+   "tests/test_app.py",
+   "tests/test_risk_gate.py"
+  ],
+  "change": {
+   "base": "9cb24d9aa3",
+   "head": "54ad72ceaa",
+   "message": "Upgrade to intelligent risk gate: tests, coverage, ML risk, live dashboard",
+   "author": "amirthasri0313-svg",
+   "commits": 1,
+   "files": [
+    ".coveragerc",
+    ".github/workflows/ci.yml",
+    ".gitignore",
+    "README.md",
+    "app.py",
+    "change_analyzer.py",
+    "config.py",
+    "deploy.py",
+    "evaluation_engine.py",
+    "history.py",
+    "ml_risk.py",
+    "model/jit_model.joblib",
+    "pipeline.py",
+    "quality_check.py",
+    "release_readiness.py",
+    "requirements.txt",
+    "risk_gate.py",
+    "ruff.toml",
+    "run_tests.py",
+    "security_check.py",
+    "static_analysis.py",
+    "templates/base.html",
+    "templates/code_input.html",
+    "templates/dashboard.html",
+    "templates/evaluation_result.html",
+    "templates/run_detail.html",
+    "tests/test_app.py",
+    "tests/test_risk_gate.py"
+   ],
+   "files_changed": 28,
+   "lines_added": 1869,
+   "lines_deleted": 283,
+   "directories": 5,
+   "entropy": 0.924,
+   "source_files": [
+    "app.py",
+    "change_analyzer.py",
+    "config.py",
+    "deploy.py",
+    "evaluation_engine.py",
+    "history.py",
+    "ml_risk.py",
+    "pipeline.py",
+    "quality_check.py",
+    "release_readiness.py",
+    "risk_gate.py",
+    "run_tests.py",
+    "security_check.py",
+    "static_analysis.py"
+   ],
+   "test_files": [
+    "tests/test_app.py",
+    "tests/test_risk_gate.py"
+   ],
+   "workflow_changed": true,
+   "dependency_changed": true,
+   "change_score": 100
+  },
+  "tests": {
+   "total": 16,
+   "failed": 2,
+   "skipped": 0,
+   "passed": 14,
+   "pass_rate": 0.875,
+   "coverage": 0.4286,
+   "previous_total": null,
+   "removed": 0,
+   "pytest_exit": 1
+  },
+  "quality": {
+   "tool": "ruff",
+   "scope": "changed files",
+   "issues": [],
+   "issue_count": 0,
+   "max_complexity": 17,
+   "syntax_errors": [],
+   "status": "PASS"
+  },
+  "security": {
+   "tool": "bandit",
+   "scope": "changed files",
+   "findings": [
+    {
+     "severity": "LOW",
+     "test_id": "B404",
+     "issue": "Consider possible security implications associated with the subprocess module.",
+     "file": "change_analyzer.py",
+     "line": 12
+    },
+    {
+     "severity": "LOW",
+     "test_id": "B607",
+     "issue": "Starting a process with a partial executable path",
+     "file": "change_analyzer.py",
+     "line": 23
+    },
+    {
+     "severity": "LOW",
+     "test_id": "B603",
+     "issue": "subprocess call - check for execution of untrusted input.",
+     "file": "change_analyzer.py",
+     "line": 23
+    },
+    {
+     "severity": "LOW",
+     "test_id": "B404",
+     "issue": "Consider possible security implications associated with the subprocess module.",
+     "file": "evaluation_engine.py",
+     "line": 9
+    },
+    {
+     "severity": "LOW",
+     "test_id": "B603",
+     "issue": "subprocess call - check for execution of untrusted input.",
+     "file": "evaluation_engine.py",
+     "line": 20
+    },
+    {
+     "severity": "LOW",
+     "test_id": "B404",
+     "issue": "Consider possible security implications associated with the subprocess module.",
+     "file": "ml_risk.py",
+     "line": 16
+    },
+    {
+     "severity": "LOW",
+     "test_id": "B607",
+     "issue": "Starting a process with a partial executable path",
+     "file": "ml_risk.py",
+     "line": 41
+    },
+    {
+     "severity": "LOW",
+     "test_id": "B603",
+     "issue": "subprocess call - check for execution of untrusted input.",
+     "file": "ml_risk.py",
+     "line": 41
+    },
+    {
+     "severity": "LOW",
+     "test_id": "B404",
+     "issue": "Consider possible security implications associated with the subprocess module.",
+     "file": "pipeline.py",
+     "line": 10
+    },
+    {
+     "severity": "LOW",
+     "test_id": "B603",
+     "issue": "subprocess call - check for execution of untrusted input.",
+     "file": "pipeline.py",
+     "line": 33
+    },
+    {
+     "severity": "LOW",
+     "test_id": "B603",
+     "issue": "subprocess call - check for execution of untrusted input.",
+     "file": "pipeline.py",
+     "line": 38
+    },
+    {
+     "severity": "LOW",
+     "test_id": "B603",
+     "issue": "subprocess call - check for execution of untrusted input.",
+     "file": "pipeline.py",
+     "line": 43
+    },
+    {
+     "severity": "LOW",
+     "test_id": "B404",
+     "issue": "Consider possible security implications associated with the subprocess module.",
+     "file": "quality_check.py",
+     "line": 9
+    },
+    {
+     "severity": "LOW",
+     "test_id": "B603",
+     "issue": "subprocess call - check for execution of untrusted input.",
+     "file": "quality_check.py",
+     "line": 32
+    },
+    {
+     "severity": "LOW",
+     "test_id": "B404",
+     "issue": "Consider possible security implications associated with the subprocess module.",
+     "file": "run_tests.py",
+     "line": 9
+    },
+    {
+     "severity": "LOW",
+     "test_id": "B405",
+     "issue": "Using xml.etree.ElementTree to parse untrusted XML data is known to be vulnerable to XML attacks. Replace xml.etree.ElementTree with the equivalent defusedxml package, or make sure defusedxml.defuse_stdlib() is called.",
+     "file": "run_tests.py",
+     "line": 11
+    },
+    {
+     "severity": "LOW",
+     "test_id": "B603",
+     "issue": "subprocess call - check for execution of untrusted input.",
+     "file": "run_tests.py",
+     "line": 29
+    },
+    {
+     "severity": "LOW",
+     "test_id": "B603",
+     "issue": "subprocess call - check for execution of untrusted input.",
+     "file": "run_tests.py",
+     "line": 32
+    },
+    {
+     "severity": "MEDIUM",
+     "test_id": "B314",
+     "issue": "Using xml.etree.ElementTree.parse to parse untrusted XML data is known to be vulnerable to XML attacks. Replace xml.etree.ElementTree.parse with its defusedxml equivalent function or make sure defusedxml.defuse_stdlib() is called",
+     "file": "run_tests.py",
+     "line": 37
+    },
+    {
+     "severity": "MEDIUM",
+     "test_id": "B314",
+     "issue": "Using xml.etree.ElementTree.parse to parse untrusted XML data is known to be vulnerable to XML attacks. Replace xml.etree.ElementTree.parse with its defusedxml equivalent function or make sure defusedxml.defuse_stdlib() is called",
+     "file": "run_tests.py",
+     "line": 44
+    },
+    {
+     "severity": "LOW",
+     "test_id": "B404",
+     "issue": "Consider possible security implications associated with the subprocess module.",
+     "file": "security_check.py",
+     "line": 9
+    },
+    {
+     "severity": "LOW",
+     "test_id": "B603",
+     "issue": "subprocess call - check for execution of untrusted input.",
+     "file": "security_check.py",
+     "line": 22
+    },
+    {
+     "severity": "LOW",
+     "test_id": "B105",
+     "issue": "Possible hardcoded password: '1.0'",
+     "file": "tests/test_risk_gate.py",
+     "line": 12
+    },
+    {
+     "severity": "LOW",
+     "test_id": "B105",
+     "issue": "Possible hardcoded password: '0.9'",
+     "file": "tests/test_risk_gate.py",
+     "line": 32
+    }
+   ],
+   "high": 0,
+   "medium": 2,
+   "low": 22,
+   "status": "FAIL"
+  },
+  "ml": {
+   "available": true,
+   "historical_risk": 91.8,
+   "probability": 0.8166,
+   "commit": "54ad72ceaa",
+   "commit_message": "Upgrade to intelligent risk gate: tests, coverage, ML risk, live dashboard",
+   "commits_scored": 1,
+   "metrics": {
+    "ns": 5,
+    "nd": 5,
+    "nf": 28,
+    "entropy": 0.924,
+    "la": 1869,
+    "ld": 283,
+    "lt": 15.321,
+    "fix": 0,
+    "ndev": 2,
+    "age": 42.151,
+    "nuc": 36,
+    "exp": 13,
+    "rexp": 11.651,
+    "sexp": 19,
+    "test_ratio": 0.071,
+    "config_change": 1,
+    "hour": 14,
+    "weekend": 1
+   },
+   "top_features": [
+    [
+     "log_la",
+     "lines added"
+    ],
+    [
+     "test_ratio",
+     "share of test files"
+    ],
+    [
+     "log_nuc",
+     "earlier changes to these files"
+    ],
+    [
+     "log_exp",
+     "author experience"
+    ]
+   ],
+   "trained_on": "18,505 SZZ-labelled commits from Flask, Requests, Werkzeug, Jinja, Click and HTTPX"
+  },
+  "risk": {
+   "risk_score": 92.7,
+   "readiness_score": 7.3,
+   "evaluation_risk": 88.5,
+   "historical_risk": 91.8,
+   "level": "HIGH",
+   "decision": "RELEASE BLOCKED",
+   "blockers": [
+    "2 failing test(s)"
+   ],
+   "guards": [
+    "CI/CD workflow file changed",
+    "dependency / build file changed",
+    "2 MEDIUM security finding(s)"
+   ],
+   "factors": [
+    [
+     "Failing tests",
+     30.0,
+     "2 of 16 tests failing"
+    ],
+    [
+     "Security findings",
+     25.0,
+     "0 high, 2 medium, 22 low"
+    ],
+    [
+     "Low coverage",
+     15.0,
+     "coverage 43% (target 80%)"
+    ],
+    [
+     "Change impact",
+     15.0,
+     "change score 100/100, 28 files"
+    ],
+    [
+     "Complexity",
+     3.5,
+     "max cyclomatic complexity 17"
+    ],
+    [
+     "Tests removed",
+     0.0,
+     "0 tests removed"
+    ],
+    [
+     "Code quality",
+     0.0,
+     "0 lint issues"
+    ],
+    [
+     "Source changed without tests",
+     0.0,
+     "tests updated or no source change"
+    ]
+   ],
+   "formula": "R = 0.65 x E 88.5 + 0.35 x H 91.8  -> raised to 92.7 by blocker"
+  },
+  "stages": {
+   "Change Analysis": {
+    "status": "DONE",
+    "detail": "28 files, +1869 -283, score 100"
+   },
+   "Tests & Coverage": {
+    "status": "FAIL",
+    "detail": "14/16 passed, coverage 43%"
+   },
+   "Code Quality": {
+    "status": "PASS",
+    "detail": "ruff: 0 issues, max complexity 17"
+   },
+   "Security Scan": {
+    "status": "FAIL",
+    "detail": "bandit: 0 high, 2 medium, 22 low"
+   },
+   "ML Risk Model": {
+    "status": "DONE",
+    "detail": "H = 91.8 (p = 0.8166)"
+   },
+   "Risk Gate": {
+    "status": "RELEASE BLOCKED",
+    "detail": "risk 92.7/100"
+   }
+  },
+  "decision": "RELEASE BLOCKED",
+  "risk_score": 92.7,
+  "status": "BLOCKED",
+  "id": 1,
+  "created_at": "2026-11-01T14:54:52+00:00"
+ }
+]
