@@ -440,5 +440,223 @@
   "status": "BLOCKED",
   "id": 1,
   "created_at": "2026-11-01T14:54:52+00:00"
+ },
+ {
+  "source": "github actions",
+  "run_url": "https://github.com/amirthasri0313-svg/Intelligent_CICD_Risk_Gate/actions/runs/41320934847",
+  "run_number": "14",
+  "event": "push",
+  "branch": "master",
+  "actor": "amirthasri0313-svg",
+  "commit_url": "https://github.com/amirthasri0313-svg/Intelligent_CICD_Risk_Gate/commit/d3ee20e8f4671d6fc9b69ab79d595b3da526e841",
+  "commit": "d3ee20e8f4",
+  "message": "Security policy, Bandit noise filter and pipeline",
+  "author": "amirthasri0313-svg",
+  "files": [
+   "config.py",
+   "evaluation_engine.py",
+   "run_tests.py",
+   "security_check.py",
+   "static_analysis.py",
+   "templates/code_input.html",
+   "tests/test_app.py",
+   "tests/test_pipeline.py"
+  ],
+  "change": {
+   "base": "81a1d6bfc1",
+   "head": "d3ee20e8f4",
+   "message": "Security policy, Bandit noise filter and pipeline",
+   "author": "amirthasri0313-svg",
+   "commits": 2,
+   "files": [
+    "config.py",
+    "evaluation_engine.py",
+    "run_tests.py",
+    "security_check.py",
+    "static_analysis.py",
+    "templates/code_input.html",
+    "tests/test_app.py",
+    "tests/test_pipeline.py"
+   ],
+   "files_changed": 8,
+   "lines_added": 215,
+   "lines_deleted": 13,
+   "directories": 3,
+   "entropy": 0.507,
+   "source_files": [
+    "config.py",
+    "evaluation_engine.py",
+    "run_tests.py",
+    "security_check.py",
+    "static_analysis.py"
+   ],
+   "test_files": [
+    "tests/test_app.py",
+    "tests/test_pipeline.py"
+   ],
+   "workflow_changed": false,
+   "dependency_changed": false,
+   "change_score": 100
+  },
+  "tests": {
+   "total": 28,
+   "failed": 0,
+   "skipped": 0,
+   "passed": 28,
+   "pass_rate": 1.0,
+   "coverage": 0.8398,
+   "previous_total": null,
+   "removed": 0,
+   "pytest_exit": 0
+  },
+  "quality": {
+   "tool": "ruff",
+   "scope": "changed files",
+   "issues": [],
+   "issue_count": 0,
+   "max_complexity": 14,
+   "syntax_errors": [],
+   "status": "PASS"
+  },
+  "security": {
+   "tool": "bandit",
+   "scope": "changed files",
+   "findings": [],
+   "high": 0,
+   "medium": 0,
+   "low": 0,
+   "status": "PASS"
+  },
+  "ml": {
+   "available": true,
+   "historical_risk": 92.6,
+   "probability": 0.8308,
+   "commit": "d3ee20e8f4",
+   "commit_message": "Security policy, Bandit noise filter and pipeline",
+   "commits_scored": 2,
+   "metrics": {
+    "ns": 2,
+    "nd": 2,
+    "nf": 5,
+    "entropy": 0.32,
+    "la": 183,
+    "ld": 7,
+    "lt": 53.4,
+    "fix": 0,
+    "ndev": 1,
+    "age": 0.016,
+    "nuc": 9,
+    "exp": 15,
+    "rexp": 13.65,
+    "sexp": 15,
+    "test_ratio": 0.2,
+    "config_change": 0,
+    "hour": 15,
+    "weekend": 1
+   },
+   "top_features": [
+    [
+     "log_la",
+     "lines added"
+    ],
+    [
+     "test_ratio",
+     "share of test files"
+    ],
+    [
+     "log_nuc",
+     "earlier changes to these files"
+    ],
+    [
+     "log_exp",
+     "author experience"
+    ]
+   ],
+   "trained_on": "18,505 SZZ-labelled commits from Flask, Requests, Werkzeug, Jinja, Click and HTTPX"
+  },
+  "risk": {
+   "risk_score": 43.5,
+   "readiness_score": 56.5,
+   "evaluation_risk": 17.0,
+   "historical_risk": 92.6,
+   "level": "MEDIUM",
+   "decision": "MANUAL APPROVAL",
+   "blockers": [],
+   "guards": [],
+   "factors": [
+    [
+     "Change impact",
+     15.0,
+     "change score 100/100, 8 files"
+    ],
+    [
+     "Complexity",
+     2.0,
+     "max cyclomatic complexity 14"
+    ],
+    [
+     "Failing tests",
+     0.0,
+     "0 of 28 tests failing"
+    ],
+    [
+     "Low coverage",
+     0.0,
+     "coverage 84% (target 80%)"
+    ],
+    [
+     "Tests removed",
+     0.0,
+     "0 tests removed"
+    ],
+    [
+     "Security findings",
+     0.0,
+     "0 high, 0 medium, 0 low"
+    ],
+    [
+     "Code quality",
+     0.0,
+     "0 lint issues"
+    ],
+    [
+     "Source changed without tests",
+     0.0,
+     "tests updated or no source change"
+    ]
+   ],
+   "formula": "R = 0.65 x E 17.0 + 0.35 x H 92.6"
+  },
+  "stages": {
+   "Change Analysis": {
+    "status": "DONE",
+    "detail": "8 files, +215 -13, score 100"
+   },
+   "Tests & Coverage": {
+    "status": "PASS",
+    "detail": "28/28 passed, coverage 84%"
+   },
+   "Code Quality": {
+    "status": "PASS",
+    "detail": "ruff: 0 issues, max complexity 14"
+   },
+   "Security Scan": {
+    "status": "PASS",
+    "detail": "bandit: 0 high, 0 medium, 0 low"
+   },
+   "ML Risk Model": {
+    "status": "DONE",
+    "detail": "H = 92.6 (p = 0.8308)"
+   },
+   "Risk Gate": {
+    "status": "MANUAL APPROVAL",
+    "detail": "risk 43.5/100"
+   }
+  },
+  "decision": "MANUAL APPROVAL",
+  "risk_score": 43.5,
+  "status": "WAITING APPROVAL",
+  "id": 2,
+  "created_at": "2026-11-01T15:23:18+00:00"
  }
 ]
