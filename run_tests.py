@@ -8,7 +8,8 @@ import json
 import os
 import subprocess
 import sys
-import xml.etree.ElementTree as ET
+# Only parses XML reports that pytest writes in this same run (trusted input).
+import xml.etree.ElementTree as ET  # nosec B405
 
 from config import HISTORY_FILE, ROOT, report_path
 
@@ -34,14 +35,14 @@ def run():
     print(proc.stdout[-3000:])
     total = failed = skipped = 0
     if junit.exists():
-        root = ET.parse(junit).getroot()
+        root = ET.parse(junit).getroot()  # nosec B314
         for s in ([root] if root.tag == "testsuite" else root.findall("testsuite")):
             total += int(s.get("tests", 0))
             failed += int(s.get("failures", 0)) + int(s.get("errors", 0))
             skipped += int(s.get("skipped", 0))
     coverage = None
     if have_cov and cov_xml.exists():
-        coverage = round(float(ET.parse(cov_xml).getroot().get("line-rate", 0)), 4)
+        coverage = round(float(ET.parse(cov_xml).getroot().get("line-rate", 0)), 4)  # nosec B314
     prev = previous_test_count()
     return {
         "total": total, "failed": failed, "skipped": skipped, "passed": total - failed - skipped,

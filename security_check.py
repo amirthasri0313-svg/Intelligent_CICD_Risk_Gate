@@ -10,7 +10,8 @@ import subprocess
 import sys
 from pathlib import Path
 
-from config import POLICY_SEVERITY, ROOT, report_path
+from change_analyzer import is_test
+from config import BANDIT_SKIP, POLICY_SEVERITY, ROOT, report_path
 from static_analysis import security_findings
 from quality_check import target_files
 
@@ -19,7 +20,7 @@ def run_bandit(files):
     bandit = shutil.which("bandit")
     if not bandit or not files:
         return None
-    proc = subprocess.run([bandit, "-q", "-f", "json", *files], cwd=ROOT,
+    proc = subprocess.run([bandit, "-q", "-f", "json", "-s", ",".join(BANDIT_SKIP), *files], cwd=ROOT,
                           capture_output=True, text=True, check=False)
     try:
         data = json.loads(proc.stdout or "{}")
@@ -42,6 +43,8 @@ def run_bandit(files):
 
 def run():
     files, scope = target_files()
+    # test files hold deliberately insecure samples and fixture values
+    files = [f for f in files if not is_test(f)]
     findings = run_bandit(files)
     tool = "bandit"
     if findings is None:

@@ -11,7 +11,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-from config import POLICY_SEVERITY
+from config import BANDIT_SKIP, POLICY_SEVERITY
 from release_readiness import calculate
 from static_analysis import complexity, quality_findings, security_findings
 
@@ -38,7 +38,7 @@ def _ruff(path):
 def _bandit(path):
     if not shutil.which("bandit"):
         return None
-    r = run_command(["bandit", "-q", "-f", "json", str(path)])
+    r = run_command(["bandit", "-q", "-f", "json", "-s", ",".join(BANDIT_SKIP), str(path)])
     try:
         data = json.loads(r["stdout"] or "{}")
     except ValueError:

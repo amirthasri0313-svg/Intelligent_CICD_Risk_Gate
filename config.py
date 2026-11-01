@@ -36,6 +36,10 @@ POLICY_SEVERITY = {
     "B107": "HIGH",  # hard-coded password default
 }
 
+# Bandit rules skipped as noise: importing subprocess and calling it with a fixed
+# argument list (no shell) is how this pipeline runs git / pytest / ruff.
+BANDIT_SKIP = ["B404", "B603", "B607"]
+
 AUTO, MANUAL, BLOCKED = "AUTO DEPLOY", "MANUAL APPROVAL", "RELEASE BLOCKED"
 
 
