@@ -34,6 +34,13 @@ body.dark a{color:#7cb3ff}
 .sce.active{box-shadow:0 0 0 2px #3b82f6}
 @media(max-width:1150px){.demo{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:640px){.demo{grid-template-columns:1fr}}
+.own{display:grid;grid-template-columns:1.6fr 1fr;gap:14px;margin-top:14px;padding-top:14px;border-top:1px solid #1f2b45}
+.own textarea{width:100%;min-height:210px;background:#050a14;border:1px solid #2b3a5c;border-radius:10px;color:#e5ecf6;font:13px/1.5 Consolas,"Courier New",monospace;padding:12px;resize:vertical}
+.own input{width:100%;background:#0d1526;border:1px solid #2b3a5c;color:#e5ecf6;border-radius:9px;padding:9px 12px;font:inherit;font-size:14px}
+.own label{font-size:12px;color:#8da0bd;font-weight:700;display:block;margin:0 0 5px}
+.own .side{display:flex;flex-direction:column;gap:10px}
+.own .err{color:#f87171;font-size:13px;min-height:18px}
+@media(max-width:900px){.own{grid-template-columns:1fr}}
 /* flow */
 .flow{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:0;margin-bottom:16px;position:relative}
 .node{position:relative;padding:0 10px;min-width:0}
@@ -148,6 +155,19 @@ code{font-family:Consolas,"Courier New",monospace;font-size:12.5px;color:#c4d3ea
   <div class="panel" style="margin-bottom:16px;padding-bottom:16px">
     <h3><span>{% if STATIC %}What the gate does · proof on GitHub{% else %}Live demo · push a change through the pipeline{% endif %}</span><span class="sm mut" style="text-transform:none;letter-spacing:0;font-weight:600">{% if STATIC %}each card links to the real GitHub Actions run{% else %}each run makes a real git commit and runs every stage, as GitHub Actions does after a push{% endif %}</span></h3>
     <div class="demo" id="demo"></div>
+    {% if not STATIC %}
+    <div class="own">
+      <div><label for="own-code">Test your own code — paste or type any Python code, it is committed and checked like a real push</label>
+        <textarea id="own-code" spellcheck="false" placeholder="def add(a, b):&#10;    return a + b"></textarea></div>
+      <div class="side">
+        <div><label for="own-file">File name</label><input id="own-file" value="my_change.py"></div>
+        <div><label for="own-msg">Commit message</label><input id="own-msg" placeholder="Describe the change"></div>
+        <div><label>Try a sample</label><div class="filters" id="own-samples"></div></div>
+        <button class="b primary" id="own-run" type="button" style="justify-content:center">▶ Run my code through the pipeline</button>
+        <div class="err" id="own-err" role="alert"></div>
+      </div>
+    </div>
+    {% endif %}
   </div>
   {% if not STATIC %}
   <div class="panel" id="runner" hidden style="margin-bottom:16px">
@@ -438,6 +458,21 @@ function demoCards() {
       ${CFG.static ? "" : `<button class="b ${id ? "" : "primary"}" data-sc="${id}" ${runnerOn ? "disabled" : ""}>▶ Run ${id ? "this change" : "pipeline"}</button>`}</div>`; }).join("");
   $("demo").querySelectorAll("button[data-sc]").forEach(b => b.onclick = () => startPipeline(b.dataset.sc));
 }
+
+/* ---------- test your own code ---------- */
+const SAMPLES = {
+  "Safe function": ["discount.py", "Add discount helper", 'def discount(price: float, percent: float) -> float:\n    """Price after a percentage discount."""\n    return round(price * (1 - percent / 100), 2)\n'],
+  "SQL injection": ["orders.py", "Add order search", 'def find_orders(con, customer):\n    query = f"SELECT * FROM orders WHERE customer = \'{customer}\'"\n    return con.execute(query).fetchall()\n'],
+  "Hard-coded password": ["db_config.py", "Add database settings", 'DB_USER = "admin"\npassword = "Admin@123"\n\n\ndef dsn():\n    return f"postgresql://{DB_USER}:{password}@db/shop"\n'],
+  "No timeout": ["weather.py", "Add weather client", 'import requests\n\n\ndef today(city):\n    return requests.get("https://api.example.com/weather", params={"q": city}).json()\n'],
+  "eval() call": ["calc.py", "Add calculator", 'def calculate(expression):\n    return eval(expression)\n'],
+};
+if (!CFG.static) {
+  $("own-samples").innerHTML = Object.keys(SAMPLES).map(k => `<button class="chip" type="button" data-k="${k}">${k}</button>`).join("");
+  $("own-samples").querySelectorAll("button").forEach(b => b.onclick = () => { const [f, m, c] = SAMPLES[b.dataset.k]; $("own-file").value = f; $("own-msg").value = m; $("own-code").value = c; $("own-err").textContent = ""; });
+  $("own-code").addEventListener("keydown", e => { if (e.key === "Tab") { e.preventDefault(); const t = e.target, i = t.selectionStart; t.value = t.value.slice(0, i) + "    " + t.value.slice(t.selectionEnd); t.selectionStart = t.selectionEnd = i + 4; } });
+  $("own-run").onclick = () => startPipeline(null, {code: $("own-code").value, filename: $("own-file").value, message: $("own-msg").value});
+}
 /* ---------- local pipeline runner ---------- */
 const STEP_NODE = {"Code Input": 0, "Change Analysis": 0, "Tests & Coverage": 1, "Code Quality (Ruff)": 1, "Security Scan (Bandit)": 1, "ML Risk Model": 2, "Release Readiness": 2, "Risk Gate": 3, "Release": 5};
 const SICO = {pending: '<span class="mut">○</span>', running: '<span class="spin"></span>', pass: '<span style="color:#4ade80">✔</span>', warn: '<span style="color:#fbbf24;font-weight:900">!</span>', fail: '<span style="color:#f87171">✖</span>'};
@@ -456,7 +491,7 @@ async function pollRunner() {
   if (!s.started_at) return;
   $("runner").hidden = false; runnerOn = s.running;
   $("runBtn").disabled = s.running; $("runBtn").textContent = s.running ? "Pipeline running…" : "▶ Run pipeline now";
-  $("rn-title").textContent = (s.scenario ? "· " + (SCEN.find(x => x[0] === s.scenario) || [])[2] : "") + (s.run_key ? " · " + s.run_key : ""); $("rn-time").textContent = (s.running ? "running · " : "finished · ") + s.elapsed + " s";
+  $("rn-title").textContent = (s.scenario ? "· " + (s.scenario === "custom" ? "Your code" : (SCEN.find(x => x[0] === s.scenario) || [])[2]) : "") + (s.run_key ? " · " + s.run_key : ""); $("rn-time").textContent = (s.running ? "running · " : "finished · ") + s.elapsed + " s";
   $("rn-steps").innerHTML = s.steps.map(st => `<div class="step ${st.status}"><span class="ico">${SICO[st.status] || ""}</span><span>${esc(st.name)}${st.detail ? `<br><span class="sm" style="color:#fbbf24">${esc(st.detail)}</span>` : ""}</span><span class="sec">${st.seconds != null ? st.seconds + " s" : ""}</span></div>`).join("");
   const log = $("rn-log"), stick = log.scrollTop + log.clientHeight >= log.scrollHeight - 30;
   log.innerHTML = s.log.map(l => l.startsWith("$ ") ? `<span class="c">${esc(l)}</span>` : esc(l)).join("\n"); if (stick) log.scrollTop = log.scrollHeight;
@@ -465,15 +500,17 @@ async function pollRunner() {
   if (s.running) runnerFlow(s);
   return s;
 }
-async function startPipeline(scenario) {
-  $("runBtn").disabled = true; activeScen = scenario || ""; runnerOn = true; demoCards();
-  const r = await fetch("/api/pipeline/run", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({scenario: scenario || null})});
+async function startPipeline(scenario, custom) {
+  if (!CFG.static) $("own-err").textContent = "";
+  const r = await fetch("/api/pipeline/run", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(custom || {scenario: scenario || null})});
+  if (r.status === 400) { $("own-err").textContent = (await r.json()).error; return; }
+  $("runBtn").disabled = true; activeScen = custom ? "custom" : (scenario || ""); runnerOn = true; demoCards(); if ($("own-run")) $("own-run").disabled = true;
   if (r.status === 409) toast("A pipeline run is already in progress");
   else toast("Pipeline started: change analysis → tests → quality → security → ML → risk gate");
   $("runner").hidden = false; $("runner").scrollIntoView({behavior: "smooth", block: "center"});
   follow();
 }
-function follow() { const tick = async () => { const s = await pollRunner(); if (s && s.running) setTimeout(tick, 1000); else { runnerOn = false; await refresh(); if (s && s.run_key) openRun(s.run_key); } }; tick(); }
+function follow() { const tick = async () => { const s = await pollRunner(); if (s && s.running) setTimeout(tick, 1000); else { runnerOn = false; if ($("own-run")) $("own-run").disabled = false; await refresh(); if (s && s.run_key) openRun(s.run_key); } }; tick(); }
 if (!CFG.static) $("runBtn").onclick = () => startPipeline("");
 
 /* ---------- main loop ---------- */

@@ -103,3 +103,11 @@ def test_pipeline_runner_api(client, monkeypatch):
         time.sleep(0.1)
     assert [s["status"] for s in state["steps"]][:2] == ["pass", "fail"]
     assert "analysing" in "\n".join(state["log"])
+
+
+def test_custom_code_validation(client):
+    assert client.post("/api/pipeline/run", json={"code": "   "}).status_code == 400
+    assert client.post("/api/pipeline/run", json={"code": "x = 1", "filename": "../evil.py"}).status_code == 400
+    import runner
+    change = runner.custom_change("x = 1", "my_mod.py", "")
+    assert change["files"] == {"my_mod.py": "x = 1\n"} and change["message"] == "Add my_mod.py"
