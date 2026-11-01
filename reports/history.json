@@ -662,5 +662,200 @@
   "approved_by": "GitHub reviewer",
   "approved_at": "2026-11-01T15:33:01+00:00",
   "deploy_url": "https://github.com/amirthasri0313-svg/Intelligent_CICD_Risk_Gate/actions/runs/41320934847"
+ },
+ {
+  "source": "github actions",
+  "run_url": "https://github.com/amirthasri0313-svg/Intelligent_CICD_Risk_Gate/actions/runs/41322271935",
+  "run_number": "15",
+  "event": "push",
+  "branch": "master",
+  "actor": "amirthasri0313-svg",
+  "commit_url": "https://github.com/amirthasri0313-svg/Intelligent_CICD_Risk_Gate/commit/43aa36f2f3c66d51b4b4e3fcadb0378bf3232f0c",
+  "commit": "43aa36f2f3",
+  "message": "Docs: add project author",
+  "author": "amirthasri0313-svg",
+  "files": [
+   "README.md"
+  ],
+  "change": {
+   "base": "0df511bbb2",
+   "head": "43aa36f2f3",
+   "message": "Docs: add project author",
+   "author": "amirthasri0313-svg",
+   "commits": 1,
+   "files": [
+    "README.md"
+   ],
+   "files_changed": 1,
+   "lines_added": 2,
+   "lines_deleted": 0,
+   "directories": 1,
+   "entropy": 0.0,
+   "source_files": [],
+   "test_files": [],
+   "workflow_changed": false,
+   "dependency_changed": false,
+   "change_score": 5
+  },
+  "tests": {
+   "total": 28,
+   "failed": 0,
+   "skipped": 0,
+   "passed": 28,
+   "pass_rate": 1.0,
+   "coverage": 0.8398,
+   "previous_total": null,
+   "removed": 0,
+   "pytest_exit": 0
+  },
+  "quality": {
+   "tool": "built-in",
+   "scope": "changed files",
+   "issues": [],
+   "issue_count": 0,
+   "max_complexity": 0,
+   "syntax_errors": [],
+   "status": "PASS"
+  },
+  "security": {
+   "tool": "built-in",
+   "scope": "changed files",
+   "findings": [],
+   "high": 0,
+   "medium": 0,
+   "low": 0,
+   "status": "PASS"
+  },
+  "ml": {
+   "available": true,
+   "historical_risk": 20.8,
+   "probability": 0.0997,
+   "commit": "43aa36f2f3",
+   "commit_message": "Docs: add project author",
+   "commits_scored": 1,
+   "metrics": {
+    "ns": 1,
+    "nd": 1,
+    "nf": 1,
+    "entropy": 0.0,
+    "la": 2,
+    "ld": 0,
+    "lt": 62.0,
+    "fix": 0,
+    "ndev": 1,
+    "age": 0.031,
+    "nuc": 1,
+    "exp": 16,
+    "rexp": 14.65,
+    "sexp": 12,
+    "test_ratio": 0.0,
+    "config_change": 0,
+    "hour": 15,
+    "weekend": 1
+   },
+   "top_features": [
+    [
+     "log_la",
+     "lines added"
+    ],
+    [
+     "test_ratio",
+     "share of test files"
+    ],
+    [
+     "log_nuc",
+     "earlier changes to these files"
+    ],
+    [
+     "log_exp",
+     "author experience"
+    ]
+   ],
+   "trained_on": "18,505 SZZ-labelled commits from Flask, Requests, Werkzeug, Jinja, Click and HTTPX"
+  },
+  "risk": {
+   "risk_score": 7.8,
+   "readiness_score": 92.2,
+   "evaluation_risk": 0.8,
+   "historical_risk": 20.8,
+   "level": "LOW",
+   "decision": "AUTO DEPLOY",
+   "blockers": [],
+   "guards": [],
+   "factors": [
+    [
+     "Change impact",
+     0.75,
+     "change score 5/100, 1 files"
+    ],
+    [
+     "Failing tests",
+     0.0,
+     "0 of 28 tests failing"
+    ],
+    [
+     "Low coverage",
+     0.0,
+     "coverage 84% (target 80%)"
+    ],
+    [
+     "Tests removed",
+     0.0,
+     "0 tests removed"
+    ],
+    [
+     "Security findings",
+     0.0,
+     "0 high, 0 medium, 0 low"
+    ],
+    [
+     "Code quality",
+     0.0,
+     "0 lint issues"
+    ],
+    [
+     "Complexity",
+     0.0,
+     "max cyclomatic complexity 0"
+    ],
+    [
+     "Source changed without tests",
+     0.0,
+     "tests updated or no source change"
+    ]
+   ],
+   "formula": "R = 0.65 x E 0.8 + 0.35 x H 20.8"
+  },
+  "stages": {
+   "Change Analysis": {
+    "status": "DONE",
+    "detail": "1 files, +2 -0, score 5"
+   },
+   "Tests & Coverage": {
+    "status": "PASS",
+    "detail": "28/28 passed, coverage 84%"
+   },
+   "Code Quality": {
+    "status": "PASS",
+    "detail": "built-in: 0 issues, max complexity 0"
+   },
+   "Security Scan": {
+    "status": "PASS",
+    "detail": "built-in: 0 high, 0 medium, 0 low"
+   },
+   "ML Risk Model": {
+    "status": "DONE",
+    "detail": "H = 20.8 (p = 0.0997)"
+   },
+   "Risk Gate": {
+    "status": "AUTO DEPLOY",
+    "detail": "risk 7.8/100"
+   }
+  },
+  "decision": "AUTO DEPLOY",
+  "risk_score": 7.8,
+  "status": "DEPLOYING",
+  "id": 3,
+  "created_at": "2026-11-01T15:39:14+00:00"
  }
 ]
