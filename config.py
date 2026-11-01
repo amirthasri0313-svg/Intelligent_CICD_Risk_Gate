@@ -26,6 +26,16 @@ MANUAL_MAX = 70    # 31-70  -> MANUAL APPROVAL ; 71-100 -> RELEASE BLOCKED
 # Coverage below this adds risk
 COVERAGE_TARGET = 0.80
 
+# Security policy: Bandit rules this project always treats as HIGH (release blockers),
+# whatever severity Bandit itself reports (Bandit rates SQL injection MEDIUM and
+# hard-coded passwords LOW).
+POLICY_SEVERITY = {
+    "B608": "HIGH",  # SQL built with string formatting (SQL injection)
+    "B105": "HIGH",  # hard-coded password string
+    "B106": "HIGH",  # hard-coded password argument
+    "B107": "HIGH",  # hard-coded password default
+}
+
 AUTO, MANUAL, BLOCKED = "AUTO DEPLOY", "MANUAL APPROVAL", "RELEASE BLOCKED"
 
 

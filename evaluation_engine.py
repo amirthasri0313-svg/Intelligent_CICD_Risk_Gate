@@ -11,6 +11,7 @@ import sys
 import tempfile
 from pathlib import Path
 
+from config import POLICY_SEVERITY
 from release_readiness import calculate
 from static_analysis import complexity, quality_findings, security_findings
 
@@ -42,7 +43,7 @@ def _bandit(path):
         data = json.loads(r["stdout"] or "{}")
     except ValueError:
         return None
-    return [{"severity": x.get("issue_severity", "LOW").upper(), "test_id": x.get("test_id", ""),
+    return [{"severity": POLICY_SEVERITY.get(x.get("test_id", ""), x.get("issue_severity", "LOW").upper()), "test_id": x.get("test_id", ""),
              "issue": x.get("issue_text", ""), "file": "submitted_code.py", "line": x.get("line_number", 0)}
             for x in data.get("results", []) if x.get("test_id") != "B101"]
 

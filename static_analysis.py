@@ -51,7 +51,11 @@ def _kw(call, key):
     return None
 
 
-HTTP_METHODS = {"get", "post", "put", "delete", "request"}
+HTTP_METHODS = {"get", "post", "put", "delete", "patch", "head", "request"}
+
+
+def _is_http(name):
+    return name.startswith("requests.") and name.split(".")[-1] in HTTP_METHODS
 
 # (test, severity, bandit id, message) - each test takes (call name, call node)
 CALL_RULES = [
@@ -63,10 +67,12 @@ CALL_RULES = [
     (lambda n, c: n in ("os.system", "os.popen"), "HIGH", "B605", "{n}() starts a shell (command injection)"),
     (lambda n, c: n.endswith("execute") and bool(c.args) and isinstance(c.args[0], (ast.JoinedStr, ast.BinOp)),
      "HIGH", "B608", "SQL query built with string formatting (SQL injection)"),
-    (lambda n, c: n.split(".")[-1] in HTTP_METHODS and _kw(c, "verify") is False, "MEDIUM", "B501",
+    (lambda n, c: _is_http(n) and _kw(c, "verify") is False, "HIGH", "B501",
      "TLS certificate verification disabled (verify=False)"),
-    (lambda n, c: n in ("hashlib.md5", "hashlib.sha1"), "MEDIUM", "B324", "Weak hash {n}()"),
-    (lambda n, c: n.endswith(".run") and _kw(c, "debug") is True, "MEDIUM", "B201", "Flask app run with debug=True"),
+    (lambda n, c: _is_http(n) and not any(k.arg == "timeout" for k in c.keywords), "MEDIUM", "B113",
+     "HTTP request without a timeout"),
+    (lambda n, c: n in ("hashlib.md5", "hashlib.sha1"), "HIGH", "B324", "Weak hash {n}()"),
+    (lambda n, c: n.endswith(".run") and _kw(c, "debug") is True, "HIGH", "B201", "Flask app run with debug=True"),
 ]
 
 

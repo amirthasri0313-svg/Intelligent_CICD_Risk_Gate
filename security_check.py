@@ -10,7 +10,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from config import ROOT, report_path
+from config import POLICY_SEVERITY, ROOT, report_path
 from static_analysis import security_findings
 from quality_check import target_files
 
@@ -35,7 +35,7 @@ def run_bandit(files):
         # assert statements are normal in tests
         if r.get("test_id") == "B101":
             continue
-        out.append({"severity": r.get("issue_severity", "LOW").upper(), "test_id": r.get("test_id", ""),
+        out.append({"severity": POLICY_SEVERITY.get(r.get("test_id", ""), r.get("issue_severity", "LOW").upper()), "test_id": r.get("test_id", ""),
                     "issue": r.get("issue_text", ""), "file": name, "line": r.get("line_number", 0)})
     return out
 

@@ -54,7 +54,7 @@ def test_dashboard_and_run_detail(client):
 
 
 def test_manual_approval_flow(client):
-    code = "import requests\n\ndef get(u):\n    return requests.get(u, timeout=5, verify=False).json()\n"
+    code = "import requests\n\ndef get(u):\n    return requests.get(u).json()\n"
     client.post("/evaluate", data={"code": code})
     run = client.get("/api/history").get_json()[-1]
     assert run["status"] == "WAITING APPROVAL"
