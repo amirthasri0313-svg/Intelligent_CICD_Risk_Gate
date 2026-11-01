@@ -87,7 +87,7 @@ def test_reject_and_github_panel_offline(client):
     assert run["status"] == "REJECTED" and run["rejected_by"] == "QA"
     assert client.get("/api/github/runs").get_json()["available"] is False
     page = client.get("/dashboard").data
-    assert b"Run pipeline now" in page and b"Risk Calculation" in page
+    assert b"Run through pipeline" in page and b"Risk Calculation" in page
 
 
 def test_pipeline_runner_api(client, monkeypatch):
@@ -111,3 +111,37 @@ def test_custom_code_validation(client):
     import runner
     change = runner.custom_change("x = 1", "my_mod.py", "")
     assert change["files"] == {"my_mod.py": "x = 1\n"} and change["message"] == "Add my_mod.py"
+
+
+def test_github_live_needs_token_and_maps_steps(client, monkeypatch):
+    import github_live
+    monkeypatch.setattr(github_live, "token", lambda: "")
+    assert client.post("/api/github/push", json={"code": "x = 1"}).status_code == 400
+    monkeypatch.setattr(github_live, "token", lambda: "t")
+    monkeypatch.delenv("RISKGATE_OFFLINE")
+    calls = []
+
+    def fake(path, method="GET", body=None):
+        calls.append((path, method))
+        if path.startswith("contents/demo_changes") and method == "GET":
+            raise github_live.GitHubError("GitHub 404: not found")
+        if method == "PUT":
+            return {"commit": {"sha": "abc1234567890"}}
+        if path.startswith("actions/runs?head_sha"):
+            return {"workflow_runs": [{"id": 9, "run_number": 18, "status": "waiting", "conclusion": None,
+                                       "html_url": "u", "display_title": "t", "head_sha": "abc1234567890"}]}
+        if path.endswith("/jobs"):
+            return {"jobs": [{"name": "Evaluate & Risk Gate", "status": "completed", "conclusion": "success",
+                              "steps": [{"name": "Stage 2 · Code quality (Ruff)", "status": "completed", "conclusion": "success"}]}]}
+        if path.endswith("pending_deployments") and method == "GET":
+            return [{"environment": {"id": 5, "name": "production-approval"}}]
+        if path.startswith("contents/reports/history.json"):
+            import base64
+            return {"content": base64.b64encode(json.dumps([{"id": 7, "commit": "abc1234567"}]).encode()).decode()}
+        return {}
+    monkeypatch.setattr(github_live, "call", fake)
+    assert client.post("/api/github/push", json={"code": "x = 1", "filename": "a.py"}).get_json()["sha"] == "abc1234567890"
+    t = client.get("/api/github/track/abc1234567890").get_json()
+    assert t["stages"][1]["status"] == "success" and t["pending"][0]["id"] == 5 and t["record"]["key"] == "gh-7"
+    assert client.post("/api/github/review", json={"run_id": 9, "action": "approve"}).get_json()["ok"]
+    assert ("actions/runs/9/pending_deployments", "POST") in calls

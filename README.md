@@ -40,6 +40,17 @@ GitHub Pages** job publishes it to
 Blocked or rejected changes never reach this URL. The live site reads the run
 history and the GitHub Actions runs straight from GitHub, so it stays current.
 
+## Dashboard → GitHub (live demo)
+
+The dashboard can push the code you type straight to GitHub and follow the real workflow run:
+
+1. GitHub → Settings → Developer settings → Personal access tokens → **Fine-grained tokens** → Generate new token.
+   Repository access: only this repository. Permissions: **Contents: Read and write**, **Actions: Read**, **Deployments: Read and write**.
+2. Save the token in a file `github_token.txt` next to `app.py` (it is in `.gitignore`, never committed).
+3. `python app.py` → `/dashboard` → paste code → **Push to GitHub & run**.
+   The six stages follow the GitHub Actions run live. If the gate asks for manual approval,
+   **Approve & deploy on GitHub** approves the waiting deployment on GitHub itself.
+
 ## Dashboard
 
 `python app.py` → http://127.0.0.1:5000/dashboard

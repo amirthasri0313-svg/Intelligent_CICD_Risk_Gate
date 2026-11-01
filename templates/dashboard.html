@@ -1,544 +1,269 @@
 {% extends "base.html" %}
-{% block title %}Risk Gate Dashboard · Intelligent CI/CD Risk Gate{% endblock %}
-{% block bodyclass %}dark{% endblock %}
+{% block title %}Dashboard · Intelligent CI/CD Risk Gate{% endblock %}
 {% block style %}
-body.dark{background:#0b1220;color:#e5ecf6}
-body.dark .header{background:#070d18;border-bottom:1px solid #1f2b45}
-body.dark .footer{color:#6f83a3}
-body.dark a{color:#7cb3ff}
-.wrap{max-width:1360px;margin:22px auto 10px;padding:0 20px}
-.panel{background:#111a2e;border:1px solid #1f2b45;border-radius:14px;padding:18px 20px}
-.panel h3{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#8da0bd;font-weight:700;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;gap:8px}
-.mut{color:#8da0bd}.sm{font-size:12.5px}
-.hero{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;margin-bottom:16px}
-.hero h2{font-size:26px;font-weight:800;letter-spacing:-.01em}
-.hero p{color:#8da0bd;font-size:14px;margin-top:4px}
-.actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-.pill{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:700;padding:6px 12px;border-radius:999px;background:#0f2a1c;color:#4ade80;border:1px solid #14532d}
-.pill.off{background:#2a1515;color:#fca5a5;border-color:#7f1d1d}
-.pulse{width:8px;height:8px;border-radius:50%;background:currentColor;animation:pl 1.4s infinite}
-@keyframes pl{50%{opacity:.2}}
-.b{display:inline-flex;align-items:center;gap:6px;border:1px solid #2b3a5c;background:#16223b;color:#e5ecf6!important;padding:10px 16px;border-radius:10px;font-weight:700;font-size:14px;cursor:pointer}
-.b:hover{background:#1c2b4a}
-.b.primary{background:linear-gradient(135deg,#2563eb,#7c3aed);border:0}
-.b.primary:hover{filter:brightness(1.1)}
-.b:disabled{opacity:.55;cursor:wait}
-.b.green{background:#15803d;border:0}.b.red{background:#b91c1c;border:0}
-.demo{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px}
-.sce{background:#111a2e;border:1px solid #1f2b45;border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:8px;border-top:3px solid var(--c)}
-.sce h4{font-size:16px;display:flex;align-items:center;gap:8px}
-.sce p{font-size:13px;color:#a9b8d0;line-height:1.45;flex:1}
-.sce .exp{font-size:12px;color:#8da0bd}
-.sce .gh{font-size:12.5px}
-.sce .b{justify-content:center}
-.sce.active{box-shadow:0 0 0 2px #3b82f6}
-@media(max-width:1150px){.demo{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:640px){.demo{grid-template-columns:1fr}}
-.own{display:grid;grid-template-columns:1.6fr 1fr;gap:14px;margin-top:14px;padding-top:14px;border-top:1px solid #1f2b45}
-.own textarea{width:100%;min-height:210px;background:#050a14;border:1px solid #2b3a5c;border-radius:10px;color:#e5ecf6;font:13px/1.5 Consolas,"Courier New",monospace;padding:12px;resize:vertical}
-.own input{width:100%;background:#0d1526;border:1px solid #2b3a5c;color:#e5ecf6;border-radius:9px;padding:9px 12px;font:inherit;font-size:14px}
-.own label{font-size:12px;color:#8da0bd;font-weight:700;display:block;margin:0 0 5px}
-.own .side{display:flex;flex-direction:column;gap:10px}
-.own .err{color:#f87171;font-size:13px;min-height:18px}
-@media(max-width:900px){.own{grid-template-columns:1fr}}
+.wrap{max-width:1180px;margin:24px auto;padding:0 20px}
+.top{display:flex;justify-content:space-between;align-items:end;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.top h2{font-size:24px}.top p{color:#6b7280;font-size:14px;margin-top:4px}
+.card{margin-bottom:18px}
+.card h3{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:#6b7280;margin-bottom:12px}
+/* code input */
+.code{display:grid;grid-template-columns:1fr 280px;gap:16px}
+textarea{width:100%;min-height:190px;border:1px solid #d1d5db;border-radius:10px;padding:12px;font:13.5px/1.5 Consolas,"Courier New",monospace;background:#0f172a;color:#e2e8f0;resize:vertical}
+.side{display:flex;flex-direction:column;gap:10px}
+.side label{font-size:12px;font-weight:700;color:#6b7280}
+.side input{width:100%;border:1px solid #d1d5db;border-radius:8px;padding:9px 11px;font:inherit;font-size:14px;margin-top:4px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.chip{border:1px solid #d1d5db;background:#fff;border-radius:999px;padding:5px 11px;font-size:12.5px;font-weight:600;cursor:pointer;color:#374151}
+.chip:hover{border-color:#2563eb;color:#2563eb}
+.btn:disabled{opacity:.6;cursor:wait}
+.err{color:#dc2626;font-size:13px;min-height:16px}
 /* flow */
-.flow{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:0;margin-bottom:16px;position:relative}
-.node{position:relative;padding:0 10px;min-width:0}
-.node .s .tag{max-width:100%;overflow:hidden;text-overflow:ellipsis}
-.node .box{background:#111a2e;border:1.5px solid #1f2b45;border-radius:14px;padding:14px 14px 12px;min-height:150px;transition:.35s}
-.node .num{font-size:11px;font-weight:800;color:#6f83a3;letter-spacing:.08em}
-.node .ic{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;background:#16223b;margin:8px 0;font-size:19px}
-.node .t{font-weight:800;font-size:14.5px;line-height:1.2}
-.node .d{font-size:12px;color:#8da0bd;margin-top:6px;line-height:1.4;min-height:34px}
-.node .s{margin-top:8px}
-.node:not(:last-child)::after{content:"";position:absolute;top:50%;right:-6px;width:12px;height:2px;background:#2b3a5c;z-index:1}
-.node.ok .box{border-color:#166534;box-shadow:0 0 0 1px #16653455,0 8px 24px -12px #22c55e55}
-.node.ok .ic{background:#0f2a1c}
-.node.warn .box{border-color:#92400e;box-shadow:0 8px 24px -12px #f59e0b66}
-.node.warn .ic{background:#2b1d08}
-.node.bad .box{border-color:#991b1b;box-shadow:0 8px 24px -12px #ef444466}
-.node.bad .ic{background:#2a1212}
-.node.run .box{border-color:#3b82f6;box-shadow:0 0 0 3px #3b82f633;animation:glow 1.2s infinite alternate}
-@keyframes glow{to{box-shadow:0 0 0 6px #3b82f611}}
-.node.idle .box{opacity:.55}
-.flowline{position:absolute;left:3%;right:3%;top:-8px;height:3px;border-radius:3px;background:#1f2b45;overflow:hidden}
-.flowline i{display:block;height:100%;width:0;background:linear-gradient(90deg,#22c55e,#3b82f6);transition:width .6s}
-/* badges */
-.tag{display:inline-block;font-size:11px;font-weight:800;padding:3px 9px;border-radius:999px;letter-spacing:.02em;white-space:nowrap}
-.t-ok{background:#0f2a1c;color:#4ade80}.t-warn{background:#2b1d08;color:#fbbf24}.t-bad{background:#2a1212;color:#f87171}
-.t-info{background:#0f1f3d;color:#93c5fd}.t-grey{background:#1b2540;color:#a9b8d0}.t-pur{background:#1f1640;color:#c4b5fd}
-/* kpis */
-.kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:16px}
-.kpi{background:#111a2e;border:1px solid #1f2b45;border-radius:14px;padding:14px 16px;position:relative;overflow:hidden}
-.kpi .l{font-size:11px;color:#8da0bd;text-transform:uppercase;letter-spacing:.08em;font-weight:800}
-.kpi .v{font-size:30px;font-weight:800;margin-top:4px;font-variant-numeric:tabular-nums}
-.kpi .x{font-size:12px;color:#6f83a3}
-.kpi::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--c,#3b82f6)}
-.g3{display:grid;grid-template-columns:1.6fr 1fr 1fr;gap:16px;margin-bottom:16px}
-.g2{display:grid;grid-template-columns:1fr 1.5fr;gap:16px;margin-bottom:16px}
-svg text{font-family:"Segoe UI",Arial,sans-serif}
-.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:#8da0bd;margin-top:8px}
-.legend i{display:inline-block;width:14px;height:3px;border-radius:2px;vertical-align:middle;margin-right:5px}
-/* runner */
-.runner{display:grid;grid-template-columns:330px 1fr;gap:16px}
-.steps{display:flex;flex-direction:column;gap:6px}
-.step{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:9px;background:#0d1526;font-size:13.5px}
-.step .ico{width:20px;text-align:center}
-.step .sec{margin-left:auto;color:#6f83a3;font-size:12px;font-variant-numeric:tabular-nums}
-.step.running{background:#0f1f3d;outline:1px solid #3b82f6}
-.spin{display:inline-block;width:13px;height:13px;border:2px solid #3b82f6;border-right-color:transparent;border-radius:50%;animation:sp .8s linear infinite}
-@keyframes sp{to{transform:rotate(360deg)}}
-.term{background:#050a14;border:1px solid #1f2b45;border-radius:10px;padding:12px 14px;height:290px;overflow:auto;font:12px/1.5 Consolas,"Courier New",monospace;color:#b8c7dd;white-space:pre-wrap}
-.term .c{color:#7dd3fc}
-.result{margin-top:10px;padding:12px 14px;border-radius:10px;font-weight:800;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
-/* gh */
-.ghrow{display:grid;grid-template-columns:22px 1fr auto;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid #1a2540;font-size:13.5px}
-.ghrow:last-child{border-bottom:0}
-.jobs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
-/* table */
-.filters{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
-.chip{border:1px solid #2b3a5c;background:transparent;color:#a9b8d0;border-radius:999px;padding:5px 12px;font-size:12.5px;font-weight:700;cursor:pointer}
-.chip.on{background:#2563eb;border-color:#2563eb;color:#fff}
-.search{background:#0d1526;border:1px solid #2b3a5c;color:#e5ecf6;border-radius:999px;padding:6px 14px;font-size:13px;min-width:180px}
-.tbl{overflow-x:auto}
-table.runs{width:100%;border-collapse:collapse}
-table.runs th{font-size:11px;color:#6f83a3;text-transform:uppercase;letter-spacing:.06em;text-align:left;padding:10px 8px;border-bottom:1px solid #1f2b45}
-table.runs td{padding:11px 8px;border-bottom:1px solid #18223a;font-size:13.5px;vertical-align:middle}
-table.runs tbody tr{cursor:pointer;transition:background .15s}
-table.runs tbody tr:hover{background:#16223b}
-tr.new{animation:fl 2.5s}
-@keyframes fl{0%{background:#1e3a8a}100%{background:transparent}}
-.meter{width:70px;height:6px;background:#1f2b45;border-radius:3px;display:inline-block;vertical-align:middle;margin-right:8px;overflow:hidden}
-.meter i{display:block;height:100%}
-code{font-family:Consolas,"Courier New",monospace;font-size:12.5px;color:#c4d3ea}
-/* drawer */
-.scrim{position:fixed;inset:0;background:#0009;opacity:0;pointer-events:none;transition:.25s;z-index:20}
-.scrim.on{opacity:1;pointer-events:auto}
-.drawer{position:fixed;top:0;right:0;bottom:0;width:min(620px,100%);background:#0e1628;border-left:1px solid #1f2b45;z-index:21;transform:translateX(100%);transition:.3s;overflow:auto;padding:22px}
-.drawer.on{transform:none}
-.drawer h4{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#8da0bd;margin:18px 0 8px}
-.sg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.sc{background:#111a2e;border:1px solid #1f2b45;border-radius:10px;padding:10px 12px;font-size:12.5px}
-.sc b{display:block;font-size:13px;margin:2px 0}
-.fx{display:grid;grid-template-columns:1.3fr 1fr 44px;gap:7px 10px;align-items:center;font-size:13px}
-.bar{height:7px;background:#1f2b45;border-radius:4px;overflow:hidden}.bar i{display:block;height:100%;background:linear-gradient(90deg,#3b82f6,#a78bfa)}
-.rv{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
-.rv input{flex:1 1 160px;background:#0d1526;border:1px solid #2b3a5c;color:#e5ecf6;border-radius:9px;padding:10px 12px;font:inherit;font-size:14px}
-.toast{position:fixed;right:20px;bottom:20px;background:#16223b;border:1px solid #2b3a5c;color:#fff;padding:14px 18px;border-radius:12px;font-size:14px;box-shadow:0 12px 40px #0008;opacity:0;transform:translateY(10px);transition:.3s;z-index:30}
-.toast.show{opacity:1;transform:none}
-.empty{padding:34px;text-align:center;color:#8da0bd}
-@media(max-width:1150px){.flow{grid-template-columns:repeat(3,minmax(0,1fr));row-gap:14px}.node:nth-child(4)::after{display:none}.kpis{grid-template-columns:repeat(3,1fr)}.g3{grid-template-columns:1fr 1fr}.g3>:first-child{grid-column:1/-1}.g2,.runner{grid-template-columns:1fr}.flowline{display:none}}
-@media(max-width:640px){.flow{grid-template-columns:repeat(2,minmax(0,1fr))}.node{padding:0 4px}.node::after{display:none}.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.g3{grid-template-columns:1fr}.wrap{padding:0 12px}}
+.flow{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
+.st{border:2px solid #e5e7eb;border-radius:12px;padding:14px 12px;text-align:center;background:#f9fafb;position:relative;transition:.3s}
+.st .n{font-size:11px;font-weight:800;color:#9ca3af;letter-spacing:.06em}
+.st .t{font-weight:700;font-size:14px;margin:6px 0 4px;line-height:1.25}
+.st .d{font-size:12px;color:#6b7280;min-height:16px}
+.st:not(:last-child)::after{content:"→";position:absolute;right:-10px;top:50%;transform:translateY(-50%);color:#9ca3af;font-weight:700;font-size:13px}
+.st.ok{border-color:#86efac;background:#f0fdf4}.st.warn{border-color:#fcd34d;background:#fffbeb}.st.bad{border-color:#fca5a5;background:#fef2f2}
+.st.run{border-color:#60a5fa;background:#eff6ff;animation:pulse 1s infinite alternate}
+@keyframes pulse{to{box-shadow:0 0 0 5px #bfdbfe}}
+/* result */
+.res{display:grid;grid-template-columns:200px 1fr;gap:22px;align-items:start}
+.score{text-align:center;border-radius:12px;padding:18px 10px;background:#f9fafb}
+.score .v{font-size:52px;font-weight:800;line-height:1}
+.score .l{font-size:12px;color:#6b7280;margin-top:6px}
+.why div{margin:6px 0;font-size:14px}
+.fx{display:grid;grid-template-columns:1fr 140px 40px;gap:6px 10px;align-items:center;font-size:13.5px;margin-top:12px}
+.bar{height:7px;background:#e5e7eb;border-radius:4px;overflow:hidden}.bar i{display:block;height:100%;background:#2563eb}
+.rv{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;padding-top:14px;border-top:1px solid #e5e7eb}
+.rv input{flex:1 1 160px;border:1px solid #d1d5db;border-radius:8px;padding:9px 11px;font:inherit;font-size:14px}
+tbody tr{cursor:pointer}tbody tr:hover{background:#f9fafb}tr.sel{background:#eff6ff}
+.empty{color:#6b7280;padding:20px;text-align:center}
+@media(max-width:900px){.code,.res{grid-template-columns:1fr}.flow{grid-template-columns:repeat(3,minmax(0,1fr))}.st:nth-child(3)::after{display:none}}
+@media(max-width:520px){.flow{grid-template-columns:repeat(2,minmax(0,1fr))}.st::after{display:none}.fx{grid-template-columns:1fr 80px 36px}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 {% endblock %}
 {% block body %}
 <div class="wrap">
-  <div class="hero">
-    <div>
-      <h2>Deployment Risk Dashboard</h2>
-      <p>{% if STATIC %}Released by GitHub Actions to GitHub Pages{% if commit %} · commit <code>{{ commit }}</code>{% endif %} · built {{ built_at[:16].replace('T', ' ') }} UTC{% else %}GitHub Actions runs, local pipeline runs and Code Input evaluations — live.{% endif %}</p>
-    </div>
-    <div class="actions">
-      <span class="pill" id="live"><span class="pulse"></span><span id="updated">LIVE</span></span>
-      {% if not STATIC %}<button class="b primary" id="runBtn" type="button">▶ Run pipeline now</button>{% endif %}
-      <a class="b" href="{{ REPO_URL }}/actions" target="_blank" rel="noopener">GitHub Actions ↗</a>
-      <a class="b" href="{{ PAGES_URL }}" target="_blank" rel="noopener">Live site ↗</a>
-    </div>
+  <div class="top">
+    <div><h2>Deployment Risk Dashboard</h2>
+      <p>{% if STATIC %}Released by GitHub Actions{% if built_at %} · {{ built_at[:16].replace('T', ' ') }} UTC{% endif %}{% else %}Enter code → it goes through every stage of the CI/CD risk gate{% endif %}</p></div>
+    <a class="btn ghost" href="{{ REPO_URL }}/actions" target="_blank" rel="noopener">View runs on GitHub ↗</a>
   </div>
 
-  <!-- the six stages of the title -->
-  <div class="flow" id="flow">
-    <div class="flowline"><i id="flowfill"></i></div>
-  </div>
-
-
-  <div class="panel" style="margin-bottom:16px;padding-bottom:16px">
-    <h3><span>{% if STATIC %}What the gate does · proof on GitHub{% else %}Live demo · push a change through the pipeline{% endif %}</span><span class="sm mut" style="text-transform:none;letter-spacing:0;font-weight:600">{% if STATIC %}each card links to the real GitHub Actions run{% else %}each run makes a real git commit and runs every stage, as GitHub Actions does after a push{% endif %}</span></h3>
-    <div class="demo" id="demo"></div>
-    {% if not STATIC %}
-    <div class="own">
-      <div><label for="own-code">Test your own code — paste or type any Python code, it is committed and checked like a real push</label>
-        <textarea id="own-code" spellcheck="false" placeholder="def add(a, b):&#10;    return a + b"></textarea></div>
-      <div class="side">
-        <div><label for="own-file">File name</label><input id="own-file" value="my_change.py"></div>
-        <div><label for="own-msg">Commit message</label><input id="own-msg" placeholder="Describe the change"></div>
-        <div><label>Try a sample</label><div class="filters" id="own-samples"></div></div>
-        <button class="b primary" id="own-run" type="button" style="justify-content:center">▶ Run my code through the pipeline</button>
-        <div class="err" id="own-err" role="alert"></div>
-      </div>
-    </div>
-    {% endif %}
-  </div>
   {% if not STATIC %}
-  <div class="panel" id="runner" hidden style="margin-bottom:16px">
-    <h3><span>Pipeline run <span id="rn-title" class="mut"></span></span><span class="mut sm" id="rn-time"></span></h3>
-    <div class="runner">
-      <div><div class="steps" id="rn-steps"></div><div id="rn-result"></div></div>
-      <div class="term" id="rn-log" aria-live="polite"></div>
+  <div class="card">
+    <h3>1 · Code input</h3>
+    <div class="code">
+      <textarea id="code" spellcheck="false" aria-label="Python code" placeholder="Type or paste Python code here"></textarea>
+      <div class="side">
+        <div><label for="file">File name</label><input id="file" value="my_change.py"></div>
+        <div><label>Samples</label><div class="chips" id="samples"></div></div>
+        {% if GITHUB_LIVE %}<button class="btn" id="ghrun" type="button">▶ Push to GitHub &amp; run</button>
+        <button class="btn ghost" id="run" type="button">Quick local check</button>
+        {% else %}<button class="btn" id="run" type="button">▶ Run through pipeline</button>{% endif %}
+        <div class="err" id="err" role="alert"></div>
+      </div>
     </div>
   </div>
   {% endif %}
 
-  <div class="kpis">
-    <div class="kpi" style="--c:#3b82f6"><div class="l">Pipeline runs</div><div class="v" id="k-total">0</div><div class="x" id="k-src">–</div></div>
-    <div class="kpi" style="--c:#22c55e"><div class="l">Deployed</div><div class="v" style="color:#4ade80" id="k-dep">0</div><div class="x" id="k-dep2">–</div></div>
-    <div class="kpi" style="--c:#f59e0b"><div class="l">Waiting approval</div><div class="v" style="color:#fbbf24" id="k-wait">0</div><div class="x">needs a reviewer</div></div>
-    <div class="kpi" style="--c:#ef4444"><div class="l">Blocked</div><div class="v" style="color:#f87171" id="k-blk">0</div><div class="x" id="k-blk2">stopped by the gate</div></div>
-    <div class="kpi" style="--c:#a78bfa"><div class="l">Avg risk score</div><div class="v" id="k-avg">–</div><div class="x">R = 0.65·E + 0.35·H</div></div>
-    <div class="kpi" style="--c:#14b8a6"><div class="l">Last decision</div><div class="v" style="font-size:18px;margin-top:10px" id="k-last">–</div><div class="x" id="k-last2">–</div></div>
+  <div class="card">
+    <h3>Pipeline <span id="ptime" style="text-transform:none;letter-spacing:0;font-weight:600"></span></h3>
+    <div class="flow" id="flow"></div>
   </div>
 
-  <div class="g3">
-    <div class="panel"><h3><span>Risk score trend</span><span class="sm mut" id="tr-n"></span></h3>
-      <svg id="trend" width="100%" height="250" role="img" aria-label="Risk score, evaluation risk and historical risk of recent runs"></svg>
-      <div class="legend"><span><i style="background:#e5ecf6"></i>Risk score R</span><span><i style="background:#3b82f6"></i>Evaluation risk E</span><span><i style="background:#a78bfa"></i>Historical (ML) risk H</span><span><i style="background:#22c55e55;height:8px"></i>0–30 auto</span><span><i style="background:#f59e0b55;height:8px"></i>31–70 manual</span><span><i style="background:#ef444455;height:8px"></i>71–100 blocked</span></div>
-    </div>
-    <div class="panel"><h3>Gate decisions</h3>
-      <svg id="donut" width="100%" height="200" viewBox="0 0 220 200" role="img" aria-label="Share of gate decisions"></svg>
-      <div class="legend" id="donut-l" style="justify-content:center"></div>
-    </div>
-    <div class="panel"><h3>How each score is built</h3>
-      <svg id="contrib" width="100%" height="200" role="img" aria-label="Evaluation and history contribution to the risk score"></svg>
-      <div class="legend"><span><i style="background:#3b82f6;height:8px"></i>0.65 × E</span><span><i style="background:#a78bfa;height:8px"></i>0.35 × H</span></div>
-    </div>
+  <div class="card">
+    <h3>Result <span id="rkey" style="text-transform:none;letter-spacing:0;font-weight:600"></span></h3>
+    <div id="result"><div class="empty">No runs yet.</div></div>
   </div>
 
-  <div class="g2">
-    <div class="panel"><h3><span>GitHub Actions · live</span><a class="sm" href="{{ REPO_URL }}/actions" target="_blank" rel="noopener">open ↗</a></h3>
-      <div class="jobs" id="gh-jobs"></div>
-      <div id="gh-runs"><div class="mut sm">Loading workflow runs from GitHub…</div></div>
-    </div>
-    <div class="panel"><h3><span>Latest run · why this decision</span><span id="lw-key" class="sm mut"></span></h3>
-      <div id="lw"><div class="mut sm">No runs yet.</div></div>
-    </div>
-  </div>
-
-  <div class="panel">
-    <h3><span>All runs</span>
-      <span class="filters">
-        <span class="filters" id="f-src"></span><span style="width:8px"></span><span class="filters" id="f-dec"></span>
-        <input class="search" id="q" placeholder="Search commit, message, author" aria-label="Search runs">
-      </span>
-    </h3>
-    <div class="tbl"><table class="runs">
-      <thead><tr><th>Run</th><th>Time (IST)</th><th>Source</th><th>Change</th><th>Author</th><th>Risk</th><th>Decision</th><th>Release</th></tr></thead>
+  <div class="card">
+    <h3>Recent runs</h3>
+    <div class="tbl"><table>
+      <thead><tr><th>Run</th><th>Time</th><th>Source</th><th>Change</th><th style="text-align:right">Risk</th><th>Decision</th><th>Status</th></tr></thead>
       <tbody id="rows"></tbody>
     </table></div>
-    <div class="empty" id="empty" hidden>No runs match.</div>
   </div>
 </div>
 
-<div class="scrim" id="scrim"></div>
-<aside class="drawer" id="drawer" aria-label="Run details"></aside>
-<div class="toast" id="toast"></div>
-
-<script id="cfg" type="application/json">{{ {"static": STATIC, "remote": REMOTE_HISTORY_URL, "repo": GITHUB_REPO, "repoUrl": REPO_URL, "pages": PAGES_URL} | tojson }}</script>
+<script id="cfg" type="application/json">{{ {"static": STATIC, "remote": REMOTE_HISTORY_URL, "github": GITHUB_LIVE or False, "repoUrl": REPO_URL} | tojson }}</script>
 <script>
 {% raw %}
 const CFG = JSON.parse(document.getElementById("cfg").textContent);
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const t = iso => iso ? new Date(iso).toLocaleString("en-IN", {timeZone:"Asia/Kolkata", day:"2-digit", month:"short", hour:"2-digit", minute:"2-digit"}) : "";
-const ago = iso => { const s = (Date.now() - new Date(iso)) / 1000; return s < 60 ? "just now" : s < 3600 ? Math.round(s/60) + " min ago" : s < 86400 ? Math.round(s/3600) + " h ago" : Math.round(s/86400) + " d ago"; };
-const col = s => s <= 30 ? "#22c55e" : s <= 70 ? "#f59e0b" : "#ef4444";
-const rc = r => ({"AUTO DEPLOY": "#22c55e", "MANUAL APPROVAL": "#f59e0b", "RELEASE BLOCKED": "#ef4444"})[r.decision] || col(r.risk_score);  // colour follows the gate decision
-const DEC = {"AUTO DEPLOY":"t-ok","MANUAL APPROVAL":"t-warn","RELEASE BLOCKED":"t-bad"};
-const STA = {"DEPLOYED":"t-ok","DEPLOYING":"t-info","WAITING APPROVAL":"t-warn","BLOCKED":"t-bad","REJECTED":"t-grey"};
-const SRC = {"github actions":["GitHub Actions","t-info"],"local pipeline":["Local pipeline","t-pur"],"code input":["Code input","t-grey"]};
-const fmt = v => v == null ? "–" : (+v).toFixed(1);
-let RUNS = [], known = null, fSrc = "all", fDec = "all", openKey = null, runnerOn = false;
+const t = iso => iso ? new Date(iso).toLocaleString("en-IN", {timeZone: "Asia/Kolkata", day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit"}) : "";
+const DEC = {"AUTO DEPLOY": "b-ok", "MANUAL APPROVAL": "b-warn", "RELEASE BLOCKED": "b-bad"};
+const STA = {"DEPLOYED": "b-ok", "DEPLOYING": "b-info", "WAITING APPROVAL": "b-warn", "BLOCKED": "b-bad", "REJECTED": "b-grey"};
+const CLR = {"AUTO DEPLOY": "#16a34a", "MANUAL APPROVAL": "#d97706", "RELEASE BLOCKED": "#dc2626"};
+const SRC = {"github actions": "GitHub", "local pipeline": "Dashboard", "code input": "Code input"};
+const STAGES = ["Code Input", "Automated Evaluation", "Risk Calculation", "Risk Gate", "Dashboard", "Release / Manual Approval"];
+let RUNS = [], shown = null, running = false, lastSig = "";
 
-/* ---------- data ---------- */
-async function getJSON(url) { const r = await fetch(url, {cache: "no-store"}); if (!r.ok) throw new Error(r.status); return r.json(); }
-async function loadRuns() {
-  if (!CFG.static) return getJSON("/api/history");
-  try { const gh = await getJSON(CFG.remote + "?t=" + Date.now()); return gh.map(r => ({...r, key: "gh-" + r.id})); }
-  catch (e) { return getJSON("history.json"); }
+/* ---- the six stages ---- */
+function flow(states) {
+  $("flow").innerHTML = STAGES.map((s, i) => { const [c, d] = states[i] || ["", ""];
+    return `<div class="st ${c}"><div class="n">STAGE ${i + 1}</div><div class="t">${s}</div><div class="d">${d}</div></div>`; }).join("");
 }
-
-/* ---------- six-stage flow (the project title) ---------- */
-const NODES = [
-  ["01", "⌨", "Code Input", "Push, pull request, local run or pasted code"],
-  ["02", "🧪", "Automated Evaluation", "Tests · coverage · Ruff · Bandit"],
-  ["03", "∑", "Risk Calculation", "R = 0.65·E + 0.35·H"],
-  ["04", "⛨", "Risk Gate", "Auto · manual · block"],
-  ["05", "▦", "Dashboard", "Run recorded with every reason"],
-  ["06", "🚀", "Release / Manual Approval", "Production or reviewer"],
-];
-function nodeInfo(r) {
-  if (!r) return NODES.map(() => ["idle", "", ""]);
-  const ch = r.change || {}, ts = r.tests || {}, se = r.security || {}, q = r.quality || {}, rk = r.risk || {};
-  const [sl] = SRC[r.source] || [r.source];
-  const files = ch.files_changed ?? (r.files || []).length;
-  const evalBad = ts.failed > 0 || se.high > 0 || (q.syntax_errors || []).length > 0 || Object.values(r.stages || {}).some(s => s.status === "FAIL");
-  const evalTxt = r.source === "code input"
-    ? Object.entries(r.stages || {}).filter(([k]) => k !== "Risk Gate").map(([k, s]) => `${k.split(" ")[0]} ${s.status}`).join(" · ")
-    : `${ts.passed ?? 0}/${ts.total ?? 0} tests${ts.coverage != null ? " · cov " + Math.round(ts.coverage * 100) + "%" : ""} · ${se.high || 0}H ${se.medium || 0}M · ${q.issue_count || 0} lint`;
-  const gate = r.decision === "AUTO DEPLOY" ? "ok" : r.decision === "MANUAL APPROVAL" ? "warn" : "bad";
-  const rel = {"DEPLOYED": "ok", "DEPLOYING": "run", "WAITING APPROVAL": "warn", "BLOCKED": "bad", "REJECTED": "bad"}[r.status] || "idle";
-  return [
-    ["ok", `${esc(sl)}${r.run_number ? " #" + esc(r.run_number) : ""}${r.commit ? " · <code>" + esc(r.commit.slice(0, 7)) + "</code>" : ""}${files ? " · " + files + " file" + (files > 1 ? "s" : "") : ""}`, `<span class="tag t-grey">${esc((r.message || "").slice(0, 34))}</span>`],
-    [evalBad ? "bad" : "ok", evalTxt, `<span class="tag ${evalBad ? "t-bad" : "t-ok"}">${evalBad ? "ISSUES FOUND" : "ALL CHECKS PASS"}</span>`],
-    [gate, `E ${fmt(rk.evaluation_risk)} · H ${fmt(rk.historical_risk)} → <b style="color:${rc(r)}">R ${fmt(r.risk_score)}</b>`, `<span class="tag t-grey">readiness ${fmt(rk.readiness_score)}</span>`],
-    [gate, `${(rk.blockers || []).length} blockers · ${(rk.guards || []).length} guards`, `<span class="tag ${DEC[r.decision]}">${esc(r.decision)}</span>`],
-    ["ok", `Recorded as run ${esc(r.key)} · ${ago(r.created_at)}`, `<span class="tag t-info">HISTORY SAVED</span>`],
-    [rel, r.approved_by ? "Approved by " + esc(r.approved_by) : r.status === "DEPLOYED" ? (r.site_url ? "Published to GitHub Pages" : "Released") : r.status === "WAITING APPROVAL" ? "Reviewer must approve" : r.status === "BLOCKED" ? "Fix blockers, push again" : esc(r.status), `<span class="tag ${STA[r.status] || "t-grey"}">${esc(r.status)}</span>`],
-  ];
+function flowFromRun(r) {
+  if (!r) return flow([]);
+  const ts = r.tests || {}, se = r.security || {}, rk = r.risk || {};
+  const bad = ts.failed > 0 || se.high > 0 || Object.values(r.stages || {}).some(s => s.status === "FAIL");
+  const g = {"AUTO DEPLOY": "ok", "MANUAL APPROVAL": "warn", "RELEASE BLOCKED": "bad"}[r.decision];
+  const rel = {"DEPLOYED": ["ok", "Deployed"], "WAITING APPROVAL": ["warn", "Needs approval"], "BLOCKED": ["bad", "Not released"], "REJECTED": ["bad", "Rejected"], "DEPLOYING": ["run", "Deploying"]}[r.status] || ["", r.status];
+  flow([["ok", r.commit ? esc(r.commit.slice(0, 7)) : "code"], [bad ? "bad" : "ok", bad ? "Issues found" : "All checks pass"],
+        [g, "Risk " + r.risk_score], [g, esc(r.decision)], ["ok", "Recorded"], rel]);
 }
-function drawFlow(info, progress) {
-  const html = NODES.map(([n, ic, title, sub], i) => { const [st, d, s] = info[i];
-    return `<div class="node ${st}"><div class="box"><div class="num">STAGE ${n}</div><div class="ic">${ic}</div><div class="t">${title}</div><div class="d">${d || sub}</div><div class="s">${s || ""}</div></div></div>`; }).join("");
-  $("flow").innerHTML = `<div class="flowline"><i id="flowfill"></i></div>` + html;
-  requestAnimationFrame(() => { $("flowfill").style.width = (progress ?? 100) + "%"; });
+function flowFromRunner(s) {
+  const map = {"Code Input": 0, "Change Analysis": 0, "Tests & Coverage": 1, "Code Quality (Ruff)": 1, "Security Scan (Bandit)": 1, "ML Risk Model": 2, "Release Readiness": 2, "Risk Gate": 3, "Release": 5};
+  const st = STAGES.map(() => ["", ""]);
+  for (const step of s.steps) { const i = map[step.name]; if (i == null || step.status === "pending") continue;
+    const c = {running: "run", pass: "ok", warn: "warn", fail: "bad"}[step.status];
+    if (st[i][0] !== "bad" && !(st[i][0] === "warn" && c === "ok")) st[i] = [c, c === "run" ? esc(step.name) + "…" : esc(step.detail || step.name)]; }
+  if (s.run_key) st[4] = ["ok", "Recorded"];
+  flow(st);
 }
 
-/* ---------- charts ---------- */
-function trend(runs) {
-  const svg = $("trend"), W = svg.clientWidth || 600, H = 250, L = 30, R = 10, T = 10, B = 26;
-  const last = runs.slice(-25), n = last.length; $("tr-n").textContent = n ? `last ${n} runs` : "";
-  const x = i => L + (n <= 1 ? (W - L - R) / 2 : i * (W - L - R) / (n - 1)), y = v => T + (H - T - B) * (1 - v / 100);
-  let s = [[0, 30, "#22c55e"], [30, 70, "#f59e0b"], [70, 100, "#ef4444"]].map(([a, b, c]) => `<rect x="${L}" y="${y(b)}" width="${W - L - R}" height="${y(a) - y(b)}" fill="${c}" opacity=".07"/>`).join("");
-  s += [0, 30, 70, 100].map(v => `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="#1f2b45" ${v % 100 ? 'stroke-dasharray="4 4"' : ""}/><text x="${L - 6}" y="${y(v) + 4}" text-anchor="end" font-size="10" fill="#6f83a3">${v}</text>`).join("");
-  const line = (key, c, w, dash) => { const pts = last.map((r, i) => [i, key(r)]).filter(p => p[1] != null);
-    return pts.length > 1 ? `<polyline points="${pts.map(([i, v]) => x(i) + "," + y(v)).join(" ")}" fill="none" stroke="${c}" stroke-width="${w}" ${dash ? `stroke-dasharray="${dash}"` : ""} stroke-linejoin="round"/>` : ""; };
-  s += line(r => r.risk?.evaluation_risk, "#3b82f6", 1.6, "5 4") + line(r => r.risk?.historical_risk, "#a78bfa", 1.6, "2 4") + line(r => r.risk_score, "#e5ecf6", 2.4);
-  last.forEach((r, i) => { s += `<circle cx="${x(i)}" cy="${y(r.risk_score)}" r="5" fill="${rc(r)}" stroke="#111a2e" stroke-width="2" style="cursor:pointer" data-key="${r.key}"><title>${esc(r.key)} · ${esc(r.message)}\nR ${r.risk_score} · ${r.decision}</title></circle>`;
-    if (n <= 14 || i % Math.ceil(n / 12) === 0) s += `<text x="${x(i)}" y="${H - 8}" text-anchor="middle" font-size="10" fill="#6f83a3">${esc(r.key.replace("local-", "L").replace("gh-", "#"))}</text>`; });
-  svg.innerHTML = n ? s : `<text x="50%" y="50%" text-anchor="middle" fill="#6f83a3" font-size="13">No runs yet</text>`;
-  svg.querySelectorAll("circle[data-key]").forEach(c => c.addEventListener("click", () => openRun(c.dataset.key)));
+/* ---- result of one run ---- */
+function result(r, ghReview) {
+  if (!r) return;
+  shown = r.key; $("rkey").textContent = "· " + (SRC[r.source] || r.source) + " · " + (r.message || "");
+  const rk = r.risk || {}, findings = (r.security || {}).findings || [];
+  const review = ghReview != null ? ghReview : r.status === "WAITING APPROVAL" ? (r.key.startsWith("local-") && !CFG.static
+    ? `<div class="rv"><input id="rv-name" placeholder="Reviewer name" aria-label="Reviewer name"><button class="btn green" onclick="review('approve')">Approve &amp; deploy</button><button class="btn red" onclick="review('reject')">Reject</button></div>`
+    : `<div class="rv"><a class="btn" href="${esc(r.run_url)}" target="_blank" rel="noopener">Approve on GitHub ↗</a></div>`) : "";
+  $("result").innerHTML = `<div class="res">
+    <div class="score"><div class="v" style="color:${CLR[r.decision]}">${r.risk_score}</div><div class="l">RISK SCORE / 100</div>
+      <div style="margin-top:10px"><span class="badge ${DEC[r.decision]}">${esc(r.decision)}</span></div>
+      <div style="margin-top:6px"><span class="badge ${STA[r.status] || "b-grey"}">${esc(r.status)}</span></div></div>
+    <div class="why">
+      ${(rk.blockers || []).map(b => `<div><span class="badge b-bad">Blocker</span> ${esc(b)}</div>`).join("")}
+      ${(rk.guards || []).map(g => `<div><span class="badge b-warn">Needs review</span> ${esc(g)}</div>`).join("")}
+      ${!(rk.blockers || []).length && !(rk.guards || []).length ? ({"AUTO DEPLOY": '<div><span class="badge b-ok">Safe</span> Low risk: released automatically.</div>', "MANUAL APPROVAL": '<div><span class="badge b-warn">Needs review</span> Risk score is between 31 and 70, so a reviewer must approve.</div>', "RELEASE BLOCKED": '<div><span class="badge b-bad">Blocked</span> Risk score is above 70.</div>'})[r.decision] || "" : ""}
+      ${findings.slice(0, 5).map(f => `<div class="small"><code>${esc(f.file)}:${esc(f.line)}</code> ${esc(f.severity)} · ${esc(f.issue)}</div>`).join("")}
+      <div class="fx">${(rk.factors || []).filter(f => f[1] > 0).map(([n, p, d]) => `<span>${esc(n)} <span class="muted small">· ${esc(d)}</span></span><span class="bar"><i style="width:${Math.min(100, p * 4)}%"></i></span><b style="text-align:right">${p}</b>`).join("")}</div>
+      <p class="small muted" style="margin-top:10px">R = 0.65 × E ${rk.evaluation_risk ?? "–"} + 0.35 × H ${rk.historical_risk ?? "–"}${r.run_url ? ` · <a href="${esc(r.run_url)}" target="_blank" rel="noopener">GitHub run ↗</a>` : ""}</p>
+      ${review}
+    </div></div>`;
+  flowFromRun(r); table();
 }
-function donut(runs) {
-  const parts = [["AUTO DEPLOY", "#22c55e"], ["MANUAL APPROVAL", "#f59e0b"], ["RELEASE BLOCKED", "#ef4444"]].map(([d, c]) => [d, c, runs.filter(r => r.decision === d).length]);
-  const tot = runs.length, cx = 110, cy = 100, r = 72, C = 2 * Math.PI * r; let off = 0, s = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#1f2b45" stroke-width="22"/>`;
-  parts.forEach(([d, c, v]) => { if (!v) return; const len = C * v / tot;
-    s += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${c}" stroke-width="22" stroke-dasharray="${Math.max(0, len - 3)} ${C}" stroke-dashoffset="${-off}" transform="rotate(-90 ${cx} ${cy})"><title>${d}: ${v}</title></circle>`; off += len; });
-  s += `<text x="${cx}" y="${cy + 4}" text-anchor="middle" font-size="34" font-weight="800" fill="#e5ecf6">${tot}</text><text x="${cx}" y="${cy + 24}" text-anchor="middle" font-size="11" fill="#8da0bd">RUNS</text>`;
-  $("donut").innerHTML = s;
-  $("donut-l").innerHTML = parts.map(([d, c, v]) => `<span><i style="background:${c};height:8px"></i>${({"AUTO DEPLOY": "auto deploy", "MANUAL APPROVAL": "manual approval", "RELEASE BLOCKED": "blocked"})[d]} ${v}${tot ? " (" + Math.round(100 * v / tot) + "%)" : ""}</span>`).join("");
-}
-function contrib(runs) {
-  const svg = $("contrib"), W = svg.clientWidth || 300, last = runs.slice(-7), rowH = 26, L = 54, Rm = 40, sc = v => (W - L - Rm) * v / 100;
-  let s = [0, 30, 70, 100].map(v => `<line x1="${L + sc(v)}" x2="${L + sc(v)}" y1="0" y2="${last.length * rowH}" stroke="#1f2b45" stroke-dasharray="3 3"/><text x="${L + sc(v)}" y="${last.length * rowH + 14}" font-size="10" text-anchor="middle" fill="#6f83a3">${v}</text>`).join("");
-  last.forEach((r, i) => { const hasH = r.risk?.historical_risk != null, e = hasH ? 0.65 * (r.risk?.evaluation_risk ?? 0) : r.risk_score, h = hasH ? 0.35 * r.risk.historical_risk : 0, y0 = i * rowH + 5;
-    s += `<text x="${L - 8}" y="${y0 + 12}" text-anchor="end" font-size="11" fill="#a9b8d0">${esc(r.key.replace("local-", "L").replace("gh-", "#"))}</text>`;
-    s += `<rect x="${L}" y="${y0}" width="${sc(e)}" height="16" rx="3" fill="#3b82f6"><title>${hasH ? "0.65 × E" : "E (no history for pasted code)"} = ${e.toFixed(1)}</title></rect>`;
-    s += `<rect x="${L + sc(e)}" y="${y0}" width="${sc(h)}" height="16" rx="3" fill="#a78bfa"><title>0.35 × H = ${h.toFixed(1)}</title></rect>`;
-    s += `<text x="${L + sc(Math.max(r.risk_score, e + h)) + 6}" y="${y0 + 12}" font-size="11" font-weight="700" fill="${rc(r)}">${fmt(r.risk_score)}</text>`; });
-  svg.setAttribute("height", last.length * rowH + 22);
-  svg.innerHTML = last.length ? s : `<text x="50%" y="50%" text-anchor="middle" fill="#6f83a3" font-size="13">No runs yet</text>`;
-}
-
-/* ---------- latest run explanation ---------- */
-function why(r) {
-  if (!r) return '<div class="mut sm">No runs yet.</div>';
-  const rk = r.risk || {}, top = (rk.factors || []).filter(f => f[1] > 0).sort((a, b) => b[1] - a[1]).slice(0, 5);
-  return `<div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:12px">
-      <div style="font-size:44px;font-weight:800;color:${rc(r)};line-height:1">${fmt(r.risk_score)}</div>
-      <div><span class="tag ${DEC[r.decision]}" style="font-size:13px">${esc(r.decision)}</span> <span class="tag ${STA[r.status] || "t-grey"}">${esc(r.status)}</span>
-      <div class="sm mut" style="margin-top:6px">${esc(r.message)} · ${esc(r.author)} · ${t(r.created_at)}</div></div>
-      <button class="b" style="margin-left:auto;padding:7px 12px" onclick="openRun('${r.key}')">Details →</button></div>
-    ${(rk.blockers || []).map(b => `<div style="margin:5px 0"><span class="tag t-bad">BLOCKER</span> ${esc(b)}</div>`).join("")}
-    ${(rk.guards || []).map(g => `<div style="margin:5px 0"><span class="tag t-warn">GUARD</span> ${esc(g)}</div>`).join("")}
-    ${!(rk.blockers || []).length && !(rk.guards || []).length ? '<div class="sm mut" style="margin-bottom:6px">No blockers or policy guards.</div>' : ""}
-    <div class="fx" style="margin-top:10px">${top.map(([n, p, d]) => `<span>${esc(n)}<br><span class="sm mut">${esc(d)}</span></span><span class="bar"><i style="width:${Math.min(100, p * 4)}%"></i></span><b style="text-align:right">${p}</b>`).join("") || '<span class="sm mut">No risk points from the evaluation.</span>'}</div>`;
-}
-
-/* ---------- table ---------- */
-function chips() {
-  const mk = (el, list, cur, set) => { $(el).innerHTML = list.map(([v, l]) => `<button class="chip ${cur === v ? "on" : ""}" data-v="${v}">${l}</button>`).join("");
-    $(el).querySelectorAll("button").forEach(b => b.onclick = () => { set(b.dataset.v); chips(); table(); }); };
-  mk("f-src", [["all", "All"], ["github actions", "GitHub"], ["local pipeline", "Local"], ["code input", "Code input"]], fSrc, v => fSrc = v);
-  mk("f-dec", [["all", "Any decision"], ["AUTO DEPLOY", "Auto"], ["MANUAL APPROVAL", "Manual"], ["RELEASE BLOCKED", "Blocked"]], fDec, v => fDec = v);
-}
-function table(fresh = new Set()) {
-  const q = $("q").value.toLowerCase();
-  const rows = RUNS.slice().reverse().filter(r => (fSrc === "all" || r.source === fSrc) && (fDec === "all" || r.decision === fDec) &&
-    (!q || [r.commit, r.message, r.author, r.key].join(" ").toLowerCase().includes(q)));
-  $("empty").hidden = rows.length > 0;
-  $("rows").innerHTML = rows.map(r => { const [sl, sc] = SRC[r.source] || [r.source, "t-grey"];
-    return `<tr class="${fresh.has(r.key) ? "new" : ""}" data-key="${r.key}"><td><b>${esc(r.key.replace("gh-", "#").replace("local-", "L"))}</b></td><td class="sm mut">${t(r.created_at)}</td>
-      <td><span class="tag ${sc}">${sl}${r.run_number ? " #" + esc(r.run_number) : ""}</span></td>
-      <td>${r.commit ? `<code>${esc(r.commit.slice(0, 7))}</code> ` : ""}${esc((r.message || "").slice(0, 60))}</td><td class="sm">${esc(r.author)}</td>
-      <td style="white-space:nowrap"><span class="meter"><i style="width:${r.risk_score}%;background:${rc(r)}"></i></span><b style="color:${rc(r)}">${fmt(r.risk_score)}</b></td>
-      <td><span class="tag ${DEC[r.decision]}">${esc(r.decision)}</span></td><td><span class="tag ${STA[r.status] || "t-grey"}">${esc(r.status)}</span></td></tr>`; }).join("");
-  $("rows").querySelectorAll("tr").forEach(tr => tr.onclick = () => openRun(tr.dataset.key));
-}
-
-/* ---------- drawer ---------- */
-function openRun(key) {
-  const r = RUNS.find(x => x.key === key); if (!r) return; openKey = key;
-  const rk = r.risk || {}, se = r.security || {}, q = r.quality || {}, ml = r.ml || {};
-  const stc = s => ["PASS", "DONE", "AUTO DEPLOY"].includes(s) ? "t-ok" : ["FAIL", "RELEASE BLOCKED"].includes(s) ? "t-bad" : s === "MANUAL APPROVAL" ? "t-warn" : "t-grey";
-  let review = "";
-  if (r.status === "WAITING APPROVAL") {
-    review = r.key.startsWith("local-") && !CFG.static
-      ? `<h4>Manual approval</h4><div class="sm mut">This change needs a reviewer before it is released.</div>
-         <div class="rv"><input id="rv-name" placeholder="Reviewer name" aria-label="Reviewer name"><input id="rv-note" placeholder="Review note" aria-label="Review note"></div>
-         <div class="rv"><button class="b green" onclick="review('approve')">✓ Approve &amp; deploy</button><button class="b red" onclick="review('reject')">✕ Reject</button></div>`
-      : `<h4>Manual approval</h4><p class="sm">Waiting for a reviewer in GitHub: open the run and press <b>Review deployments → Approve and deploy</b>.</p><p style="margin-top:8px"><a class="b" href="${esc(r.run_url)}" target="_blank" rel="noopener">Approve on GitHub ↗</a></p>`;
-  }
-  $("drawer").innerHTML = `
-    <div style="display:flex;justify-content:space-between;gap:10px;align-items:start">
-      <div><div class="sm mut">${esc((SRC[r.source] || [r.source])[0])}${r.run_number ? " #" + esc(r.run_number) : ""} · ${t(r.created_at)}</div>
-        <h3 style="font-size:20px;margin:6px 0">${esc(r.message)}</h3>
-        <div class="sm mut">${r.commit ? "commit <code>" + esc(r.commit) + "</code> · " : ""}${esc(r.author)}${r.branch ? " · " + esc(r.branch) : ""}</div></div>
-      <button class="b" style="padding:6px 12px" onclick="closeRun()" aria-label="Close">✕</button></div>
-    <div style="display:flex;gap:18px;align-items:center;margin-top:14px;flex-wrap:wrap">
-      <div style="font-size:52px;font-weight:800;color:${rc(r)};line-height:1">${fmt(r.risk_score)}</div>
-      <div><span class="tag ${DEC[r.decision]}" style="font-size:13px">${esc(r.decision)}</span> <span class="tag ${STA[r.status] || "t-grey"}">${esc(r.status)}</span>
-        <div class="sm mut" style="margin-top:6px">E ${fmt(rk.evaluation_risk)} · H ${fmt(rk.historical_risk)} · readiness ${fmt(rk.readiness_score)}</div>
-        ${r.approved_by ? `<div class="sm" style="margin-top:4px">Approved by <b>${esc(r.approved_by)}</b></div>` : ""}</div></div>
-    <div class="rv" style="margin-top:12px">
-      ${r.run_url ? `<a class="b" href="${esc(r.run_url)}" target="_blank" rel="noopener">GitHub Actions run ↗</a>` : ""}
-      ${r.commit_url ? `<a class="b" href="${esc(r.commit_url)}" target="_blank" rel="noopener">Commit ↗</a>` : ""}
-      ${r.site_url ? `<a class="b" href="${esc(r.site_url)}" target="_blank" rel="noopener">Released site ↗</a>` : ""}
-      ${!CFG.static ? `<a class="b" href="/run/${esc(r.key)}">Full page</a>` : ""}</div>
-    ${review}
-    <h4>Pipeline stages</h4><div class="sg">${Object.entries(r.stages || {}).map(([k, s]) => `<div class="sc"><span class="mut">${esc(k)}</span><b><span class="tag ${stc(s.status)}">${esc(s.status)}</span></b><span class="mut">${esc(s.detail)}</span></div>`).join("")}</div>
-    <h4>Why this decision</h4>
-    ${(rk.blockers || []).map(b => `<div style="margin:5px 0"><span class="tag t-bad">BLOCKER</span> ${esc(b)}</div>`).join("")}
-    ${(rk.guards || []).map(g => `<div style="margin:5px 0"><span class="tag t-warn">GUARD</span> ${esc(g)}</div>`).join("")}
-    <div class="fx" style="margin-top:8px">${(rk.factors || []).map(([n, p, d]) => `<span>${esc(n)}<br><span class="sm mut">${esc(d)}</span></span><span class="bar"><i style="width:${Math.min(100, p * 4)}%"></i></span><b style="text-align:right">${p}</b>`).join("")}</div>
-    ${rk.formula ? `<p class="sm mut" style="margin-top:10px"><code>${esc(rk.formula)}</code></p>` : ""}
-    <h4>Findings</h4>
-    ${(se.findings || []).map(f => `<div class="sm" style="margin:5px 0"><span class="tag ${f.severity === "HIGH" ? "t-bad" : f.severity === "MEDIUM" ? "t-warn" : "t-grey"}">${esc(f.severity)}</span> <code>${esc(f.file)}:${esc(f.line)}</code> ${esc(f.test_id)} ${esc(f.issue)}</div>`).join("")}
-    ${(q.issues || []).slice(0, 12).map(i => `<div class="sm" style="margin:5px 0"><span class="tag t-info">${esc(i.code)}</span> <code>${esc(i.file)}:${esc(i.line)}</code> ${esc(i.message)}</div>`).join("")}
-    ${!(se.findings || []).length && !(q.issues || []).length ? '<div class="sm mut">No security or quality findings.</div>' : ""}
-    ${ml.available ? `<h4>ML historical risk</h4><div class="sm">H = <b>${fmt(ml.historical_risk)}</b> (probability ${esc(ml.probability)}). Strongest signals: ${(ml.top_features || []).map(f => esc(f[1])).join(", ")}.</div><div class="sm mut" style="margin-top:4px">Model trained on ${esc(ml.trained_on)}.</div>` : ""}
-    ${(r.files || []).length ? `<h4>Changed files</h4>${r.files.map(f => `<div class="sm"><code>${esc(f)}</code></div>`).join("")}` : ""}`;
-  $("drawer").classList.add("on"); $("scrim").classList.add("on");
-}
-function closeRun() { openKey = null; $("drawer").classList.remove("on"); $("scrim").classList.remove("on"); }
-$("scrim").onclick = closeRun; document.addEventListener("keydown", e => { if (e.key === "Escape") closeRun(); });
 async function review(action) {
-  const body = new URLSearchParams({action, reviewer: $("rv-name").value || "Reviewer", note: $("rv-note").value});
-  await fetch(`/run/${openKey}/review`, {method: "POST", body, headers: {"Accept": "application/json"}});
-  toast(action === "approve" ? "Approved — deploying" : "Change rejected"); await refresh(); openRun(openKey);
+  const body = new URLSearchParams({action, reviewer: ($("rv-name") || {}).value || "Reviewer"});
+  await fetch(`/run/${shown}/review`, {method: "POST", body, headers: {"Accept": "application/json"}});
+  lastSig = ""; await refresh(true);
 }
-function toast(msg) { const el = $("toast"); el.textContent = msg; el.classList.add("show"); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove("show"), 4000); }
 
-/* ---------- GitHub Actions live ---------- */
-const ghIcon = (st, co) => st !== "completed" ? (st === "waiting" ? "⏸" : '<span class="spin"></span>') : co === "success" ? '<span style="color:#4ade80">✔</span>' : co === "skipped" ? '<span class="mut">⊘</span>' : co === "cancelled" ? '<span class="mut">■</span>' : '<span style="color:#f87171">✖</span>';
-const ghTag = (st, co) => st !== "completed" ? (st === "waiting" ? '<span class="tag t-warn">WAITING REVIEW</span>' : '<span class="tag t-info">' + esc(st).toUpperCase().replace("_", " ") + "</span>") : co === "success" ? '<span class="tag t-ok">SUCCESS</span>' : co === "skipped" ? '<span class="tag t-grey">SKIPPED</span>' : '<span class="tag t-bad">' + esc(co || "").toUpperCase() + "</span>";
-let ghJobsCache = {};
-async function github() {
-  let d;
+/* ---- recent runs ---- */
+function table() {
+  $("rows").innerHTML = RUNS.slice().reverse().slice(0, 12).map(r => `<tr class="${r.key === shown ? "sel" : ""}" data-key="${r.key}">
+    <td><b>${esc(r.key.replace("gh-", "#").replace("local-", "L"))}</b></td><td class="small muted">${t(r.created_at)}</td><td class="small">${SRC[r.source] || esc(r.source)}</td>
+    <td>${esc((r.message || "").slice(0, 55))}</td><td style="text-align:right;font-weight:700;color:${CLR[r.decision]}">${r.risk_score}</td>
+    <td><span class="badge ${DEC[r.decision]}">${esc(r.decision)}</span></td><td><span class="badge ${STA[r.status] || "b-grey"}">${esc(r.status)}</span></td></tr>`).join("")
+    || '<tr><td colspan="7" class="empty">No runs yet.</td></tr>';
+  $("rows").querySelectorAll("tr[data-key]").forEach(tr => tr.onclick = () => result(RUNS.find(r => r.key === tr.dataset.key)));
+}
+
+/* ---- data ---- */
+async function getJSON(u) { const r = await fetch(u, {cache: "no-store"}); if (!r.ok) throw new Error(r.status); return r.json(); }
+async function refresh(keep) {
   try {
-    if (!CFG.static) d = await getJSON("/api/github/runs");
-    else {
-      const api = `https://api.github.com/repos/${CFG.repo}/actions/runs?per_page=8`, runs = (await getJSON(api)).workflow_runs || [];
-      let jobs = [];
-      if (runs[0]) { const k = runs[0].id + runs[0].updated_at; jobs = ghJobsCache[k] || ((await getJSON(`https://api.github.com/repos/${CFG.repo}/actions/runs/${runs[0].id}/jobs`)).jobs || []); ghJobsCache = {[k]: jobs}; }
-      d = {available: true, runs, jobs};
-    }
-  } catch (e) { d = {available: false}; }
-  if (!d.available) { $("gh-runs").innerHTML = `<div class="sm mut">GitHub API not reachable right now (offline or rate limit). The runs below come from the saved pipeline history.</div>`; $("gh-jobs").innerHTML = ""; return; }
-  const top = d.runs[0];
-  $("gh-jobs").innerHTML = top ? `<span class="sm mut" style="width:100%">Run #${top.run_number} jobs:</span>` + d.jobs.map(j => `<a class="tag ${j.status !== "completed" ? (j.status === "waiting" ? "t-warn" : "t-info") : j.conclusion === "success" ? "t-ok" : j.conclusion === "skipped" ? "t-grey" : "t-bad"}" href="${esc(j.html_url)}" target="_blank" rel="noopener" style="font-size:11.5px;padding:5px 10px">${esc(j.name)}</a>`).join("") : "";
-  $("gh-runs").innerHTML = d.runs.slice(0, 6).map(r => `<div class="ghrow"><span>${ghIcon(r.status, r.conclusion)}</span>
-      <a href="${esc(r.html_url)}" target="_blank" rel="noopener" style="color:#e5ecf6"><b>#${r.run_number}</b> ${esc((r.display_title || "").slice(0, 52))}<div class="sm mut">${esc(r.event)} · <code>${esc((r.head_sha || "").slice(0, 7))}</code> · ${ago(r.created_at)}</div></a>
-      <span>${ghTag(r.status, r.conclusion)}</span></div>`).join("") || '<div class="sm mut">No workflow runs yet.</div>';
+    RUNS = CFG.static ? await getJSON(CFG.remote + "?t=" + Date.now()).then(a => a.map(r => ({...r, key: "gh-" + r.id}))).catch(() => getJSON("history.json"))
+                      : await getJSON("/api/history");
+  } catch (e) { return; }
+  if (running) return table();
+  const pick = keep && RUNS.find(r => r.key === shown) || RUNS[RUNS.length - 1];
+  const sig = RUNS.length + "|" + (pick ? pick.key + pick.status : "");
+  if (keep && sig === lastSig) return table();  // nothing new: don't redraw (keeps what you typed)
+  lastSig = sig;
+  if (pick) result(pick); else { flow([]); table(); }
 }
 
-
-/* ---------- live demo scenarios ---------- */
-const SCEN = [
-  ["safe", "✅", "Safe change", "Edits documentation only. Tests pass, nothing new is found, short history risk.", "AUTO DEPLOY", "#22c55e"],
-  ["risky", "⚠️", "Risky change", "Adds a dependency and an HTTP call without a timeout. Nothing is broken, but a human should look.", "MANUAL APPROVAL", "#f59e0b"],
-  ["dangerous", "⛔", "Dangerous change", "Adds a database lookup built with an f-string: SQL injection, no tests.", "RELEASE BLOCKED", "#ef4444"],
-  ["", "⌨", "Latest commit", "Runs the pipeline on the commit you last made in this repository.", "", "#3b82f6"],
-];
-let activeScen = null;
-function demoCards() {
-  $("demo").innerHTML = SCEN.filter(sc => !CFG.static || sc[4]).map(([id, ic, title, desc, exp, c]) => {
-    const gh = exp && RUNS.slice().reverse().find(r => r.source === "github actions" && r.decision === exp && r.run_url);
-    return `<div class="sce ${activeScen === id && runnerOn ? "active" : ""}" style="--c:${c}"><h4>${ic} ${title}</h4><p>${desc}</p>
-      ${exp ? `<div class="exp">Gate decides: <span class="tag ${DEC[exp]}">${exp}</span></div>` : '<div class="exp">Gate decides from the real change</div>'}
-      ${gh ? `<div class="gh">Same on GitHub: <a href="${esc(gh.run_url)}" target="_blank" rel="noopener">run #${esc(gh.run_number)} ↗</a> <span class="mut">risk ${fmt(gh.risk_score)}</span></div>` : '<div class="gh mut">&nbsp;</div>'}
-      ${CFG.static ? "" : `<button class="b ${id ? "" : "primary"}" data-sc="${id}" ${runnerOn ? "disabled" : ""}>▶ Run ${id ? "this change" : "pipeline"}</button>`}</div>`; }).join("");
-  $("demo").querySelectorAll("button[data-sc]").forEach(b => b.onclick = () => startPipeline(b.dataset.sc));
-}
-
-/* ---------- test your own code ---------- */
+/* ---- run code through the pipeline ---- */
 const SAMPLES = {
-  "Safe function": ["discount.py", "Add discount helper", 'def discount(price: float, percent: float) -> float:\n    """Price after a percentage discount."""\n    return round(price * (1 - percent / 100), 2)\n'],
-  "SQL injection": ["orders.py", "Add order search", 'def find_orders(con, customer):\n    query = f"SELECT * FROM orders WHERE customer = \'{customer}\'"\n    return con.execute(query).fetchall()\n'],
-  "Hard-coded password": ["db_config.py", "Add database settings", 'DB_USER = "admin"\npassword = "Admin@123"\n\n\ndef dsn():\n    return f"postgresql://{DB_USER}:{password}@db/shop"\n'],
-  "No timeout": ["weather.py", "Add weather client", 'import requests\n\n\ndef today(city):\n    return requests.get("https://api.example.com/weather", params={"q": city}).json()\n'],
-  "eval() call": ["calc.py", "Add calculator", 'def calculate(expression):\n    return eval(expression)\n'],
+  "Safe code": ["discount.py", 'def discount(price: float, percent: float) -> float:\n    return round(price * (1 - percent / 100), 2)\n'],
+  "SQL injection": ["orders.py", 'def find_orders(con, customer):\n    return con.execute(f"SELECT * FROM orders WHERE customer = \'{customer}\'").fetchall()\n'],
+  "Hard-coded password": ["db_config.py", 'DB_USER = "admin"\npassword = "Admin@123"\n'],
+  "No timeout": ["weather.py", 'import requests\n\n\ndef today(city):\n    return requests.get("https://api.example.com/weather", params={"q": city}).json()\n'],
 };
-if (!CFG.static) {
-  $("own-samples").innerHTML = Object.keys(SAMPLES).map(k => `<button class="chip" type="button" data-k="${k}">${k}</button>`).join("");
-  $("own-samples").querySelectorAll("button").forEach(b => b.onclick = () => { const [f, m, c] = SAMPLES[b.dataset.k]; $("own-file").value = f; $("own-msg").value = m; $("own-code").value = c; $("own-err").textContent = ""; });
-  $("own-code").addEventListener("keydown", e => { if (e.key === "Tab") { e.preventDefault(); const t = e.target, i = t.selectionStart; t.value = t.value.slice(0, i) + "    " + t.value.slice(t.selectionEnd); t.selectionStart = t.selectionEnd = i + 4; } });
-  $("own-run").onclick = () => startPipeline(null, {code: $("own-code").value, filename: $("own-file").value, message: $("own-msg").value});
-}
-/* ---------- local pipeline runner ---------- */
-const STEP_NODE = {"Code Input": 0, "Change Analysis": 0, "Tests & Coverage": 1, "Code Quality (Ruff)": 1, "Security Scan (Bandit)": 1, "ML Risk Model": 2, "Release Readiness": 2, "Risk Gate": 3, "Release": 5};
-const SICO = {pending: '<span class="mut">○</span>', running: '<span class="spin"></span>', pass: '<span style="color:#4ade80">✔</span>', warn: '<span style="color:#fbbf24;font-weight:900">!</span>', fail: '<span style="color:#f87171">✖</span>'};
-function runnerFlow(s) {
-  const info = NODES.map(() => ["idle", "", ""]); let done = 0;
-  for (const st of s.steps) { const i = STEP_NODE[st.name]; if (i == null) continue;
-    const m = {running: "run", pass: "ok", warn: "warn", fail: "bad"}[st.status];
-    if (m && (info[i][0] === "idle" || info[i][0] === "ok" || m === "bad")) info[i] = [m, esc(st.name) + (st.seconds != null ? ` · ${st.seconds}s` : " …"), ""];
-    if (st.status !== "pending" && st.status !== "running") done++; }
-  info[0][0] = info[0][0] === "idle" ? "run" : info[0][0];
-  if (s.run_key) info[4] = ["ok", "Recorded as run " + esc(s.run_key), '<span class="tag t-info">HISTORY SAVED</span>'];
-  drawFlow(info, Math.round(100 * done / Math.max(1, s.steps.length)));
-}
-async function pollRunner() {
-  let s; try { s = await getJSON("/api/pipeline/status"); } catch (e) { return; }
-  if (!s.started_at) return;
-  $("runner").hidden = false; runnerOn = s.running;
-  $("runBtn").disabled = s.running; $("runBtn").textContent = s.running ? "Pipeline running…" : "▶ Run pipeline now";
-  $("rn-title").textContent = (s.scenario ? "· " + (s.scenario === "custom" ? "Your code" : (SCEN.find(x => x[0] === s.scenario) || [])[2]) : "") + (s.run_key ? " · " + s.run_key : ""); $("rn-time").textContent = (s.running ? "running · " : "finished · ") + s.elapsed + " s";
-  $("rn-steps").innerHTML = s.steps.map(st => `<div class="step ${st.status}"><span class="ico">${SICO[st.status] || ""}</span><span>${esc(st.name)}${st.detail ? `<br><span class="sm" style="color:#fbbf24">${esc(st.detail)}</span>` : ""}</span><span class="sec">${st.seconds != null ? st.seconds + " s" : ""}</span></div>`).join("");
-  const log = $("rn-log"), stick = log.scrollTop + log.clientHeight >= log.scrollHeight - 30;
-  log.innerHTML = s.log.map(l => l.startsWith("$ ") ? `<span class="c">${esc(l)}</span>` : esc(l)).join("\n"); if (stick) log.scrollTop = log.scrollHeight;
-  const res = {"DEPLOYED": ["#0f2a1c", "#4ade80", "✔ Gate passed — released automatically"], "WAITING APPROVAL": ["#2b1d08", "#fbbf24", "⚠ Risky change — waiting for manual approval"], "BLOCKED": ["#2a1212", "#f87171", "✖ Release blocked by the risk gate"], "ERROR": ["#2a1212", "#f87171", "Pipeline error — see the log"]}[s.result];
-  $("rn-result").innerHTML = res ? `<div class="result" style="background:${res[0]};color:${res[1]}">${res[2]}${s.run_key ? `<button class="b" style="padding:6px 12px" onclick="openRun('${s.run_key}')">Open run →</button>` : ""}</div>` : "";
-  if (s.running) runnerFlow(s);
-  return s;
-}
-async function startPipeline(scenario, custom) {
-  if (!CFG.static) $("own-err").textContent = "";
-  const r = await fetch("/api/pipeline/run", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(custom || {scenario: scenario || null})});
-  if (r.status === 400) { $("own-err").textContent = (await r.json()).error; return; }
-  $("runBtn").disabled = true; activeScen = custom ? "custom" : (scenario || ""); runnerOn = true; demoCards(); if ($("own-run")) $("own-run").disabled = true;
-  if (r.status === 409) toast("A pipeline run is already in progress");
-  else toast("Pipeline started: change analysis → tests → quality → security → ML → risk gate");
-  $("runner").hidden = false; $("runner").scrollIntoView({behavior: "smooth", block: "center"});
-  follow();
-}
-function follow() { const tick = async () => { const s = await pollRunner(); if (s && s.running) setTimeout(tick, 1000); else { runnerOn = false; if ($("own-run")) $("own-run").disabled = false; await refresh(); if (s && s.run_key) openRun(s.run_key); } }; tick(); }
-if (!CFG.static) $("runBtn").onclick = () => startPipeline("");
 
-/* ---------- main loop ---------- */
-function render(runs) {
-  RUNS = runs; const n = runs.length, cnt = s => runs.filter(r => r.status === s).length, last = runs[n - 1];
-  $("k-total").textContent = n;
-  $("k-src").textContent = `${runs.filter(r => r.source === "github actions").length} GitHub · ${runs.filter(r => r.source !== "github actions").length} local`;
-  $("k-dep").textContent = cnt("DEPLOYED"); $("k-dep2").textContent = n ? Math.round(100 * cnt("DEPLOYED") / n) + "% of runs released" : "–";
-  $("k-wait").textContent = cnt("WAITING APPROVAL"); $("k-blk").textContent = cnt("BLOCKED");
-  $("k-avg").textContent = n ? (runs.reduce((a, r) => a + r.risk_score, 0) / n).toFixed(1) : "–";
-  $("k-last").innerHTML = last ? `<span class="tag ${DEC[last.decision]}" style="font-size:13px">${esc(last.decision)}</span>` : "–";
-  $("k-last2").textContent = last ? `${last.key} · ${ago(last.created_at)}` : "–";
-  const fresh = known === null ? new Set() : new Set(runs.filter(r => !known.has(r.key)).map(r => r.key));
-  if (!runnerOn) drawFlow(nodeInfo(last), 100);
-  demoCards(); trend(runs); donut(runs); contrib(runs); $("lw").innerHTML = why(last); $("lw-key").textContent = last ? last.key : ""; table(fresh);
-  if (fresh.size) toast(`New run ${last.key}: ${last.decision} (risk ${last.risk_score})`);
-  known = new Set(runs.map(r => r.key));
+/* ---- push the code to GitHub and follow the real workflow run ---- */
+let gh = null;
+async function ghRun() {
+  $("err").textContent = "";
+  const btns = [$("ghrun"), $("run")]; btns.forEach(b => b.disabled = true); $("ghrun").textContent = "Pushing to GitHub…";
+  const r = await fetch("/api/github/push", {method: "POST", headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({code: $("code").value, filename: $("file").value})});
+  const d = await r.json();
+  if (r.status !== 201) { $("err").textContent = d.error; btns.forEach(b => b.disabled = false); $("ghrun").textContent = "▶ Push to GitHub & run"; return; }
+  gh = {sha: d.sha, done: false, start: Date.now()}; running = true;
+  $("ghrun").textContent = "Running on GitHub…";
+  $("rkey").textContent = ""; $("result").innerHTML = `<div class="empty">Commit <code>${d.sha.slice(0, 7)}</code> pushed to GitHub — waiting for GitHub Actions to start…</div>`;
+  flow([["ok", "pushed " + d.sha.slice(0, 7)]]); $("flow").scrollIntoView({behavior: "smooth", block: "center"});
+  ghTick();
 }
-async function refresh() {
-  try { render(await loadRuns()); $("live").classList.remove("off");
-    $("updated").textContent = "LIVE · " + new Date().toLocaleTimeString("en-IN", {hour: "2-digit", minute: "2-digit", second: "2-digit"}); }
-  catch (e) { $("live").classList.add("off"); $("updated").textContent = "OFFLINE"; }
+async function ghTick() {
+  let s; try { s = await getJSON("/api/github/track/" + gh.sha); } catch (e) { s = {found: false}; }
+  const secs = Math.round((Date.now() - gh.start) / 1000);
+  if (!s.found) { $("ptime").textContent = `· waiting for GitHub Actions · ${secs} s`; return setTimeout(ghTick, 3000); }
+  const run = s.run, rec = s.record;
+  $("ptime").innerHTML = `· GitHub Actions run #${run.run_number} · ${run.status === "completed" ? "finished" : run.status.replace("_", " ")} · ${secs} s · <a href="${run.html_url}" target="_blank" rel="noopener">open on GitHub ↗</a>`;
+  const C = {success: "ok", failure: "bad", running: "run", waiting: "warn", pending: "", skipped: ""};
+  const st = s.stages.map((x, i) => [C[x.status] || "", i === 0 ? "commit " + gh.sha.slice(0, 7) : esc(x.detail)]);
+  if (rec) { const g = {"AUTO DEPLOY": "ok", "MANUAL APPROVAL": "warn", "RELEASE BLOCKED": "bad"}[rec.decision];
+    if (st[3][0] !== "run") st[3] = [g, esc(rec.decision)]; if (st[2][0] === "ok") st[2] = ["ok", "Risk " + rec.risk_score];
+    if (rec.decision === "RELEASE BLOCKED") st[5] = ["bad", "Not released"]; }
+  if (run.status === "completed" && run.conclusion === "success" && st[5][0] === "ok") st[5] = ["ok", "Deployed on GitHub"];
+  flow(st);
+  if (rec) {
+    let box = "";
+    if (s.pending.length) box = `<div class="rv"><input id="gh-note" placeholder="Review comment" aria-label="Review comment">
+        <button class="btn green" onclick="ghReview(${run.id}, 'approve')">✔ Approve &amp; deploy on GitHub</button>
+        <button class="btn red" onclick="ghReview(${run.id}, 'reject')">✖ Reject</button></div>`;
+    else if (st[5][0] === "ok") box = `<div class="rv"><span class="badge b-ok" style="font-size:14px">Deployed by GitHub Actions</span> <a class="btn ghost" href="${run.html_url}" target="_blank" rel="noopener">See it on GitHub ↗</a></div>`;
+    else if (rec.decision === "RELEASE BLOCKED") box = `<div class="rv"><span class="badge b-bad" style="font-size:14px">Stopped by the risk gate</span> <a class="btn ghost" href="${run.html_url}" target="_blank" rel="noopener">See it on GitHub ↗</a></div>`;
+    else if (st[5][0] === "run") box = `<div class="rv"><span class="badge b-info" style="font-size:14px">Deploying on GitHub…</span></div>`;
+    const keepNote = $("gh-note") ? $("gh-note").value : null;
+    result({...rec, status: s.pending.length ? "WAITING APPROVAL" : st[5][0] === "ok" ? "DEPLOYED" : rec.status}, box);
+    flow(st); if (keepNote != null && $("gh-note")) $("gh-note").value = keepNote;
+  }
+  if (run.status === "completed") { running = false; [$("ghrun"), $("run")].forEach(b => b.disabled = false); $("ghrun").textContent = "▶ Push to GitHub & run"; return; }
+  setTimeout(ghTick, s.pending.length ? 5000 : 3000);
 }
-$("q").oninput = () => table();
-chips(); refresh(); github();
-setInterval(refresh, CFG.static ? 30000 : 5000); setInterval(github, CFG.static ? 60000 : 30000);
-if (!CFG.static) pollRunner().then(s => { if (s && s.running) follow(); });
-let rz; window.addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(() => RUNS.length && (trend(RUNS), contrib(RUNS)), 150); });
+async function ghReview(runId, action) {
+  const note = ($("gh-note") || {}).value || "";
+  $("result").querySelectorAll(".rv button").forEach(b => b.disabled = true);
+  const r = await fetch("/api/github/review", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({run_id: runId, action, comment: note})});
+  if (!r.ok) { $("err").textContent = (await r.json()).error; return; }
+  $("result").querySelector(".rv").innerHTML = `<span class="badge ${action === "approve" ? "b-ok" : "b-grey"}" style="font-size:14px">${action === "approve" ? "Approved on GitHub — deploying…" : "Rejected on GitHub"}</span>`;
+}
+
+async function run() {
+  $("err").textContent = "";
+  const r = await fetch("/api/pipeline/run", {method: "POST", headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({code: $("code").value, filename: $("file").value})});
+  if (r.status !== 202) { $("err").textContent = (await r.json()).error || "Could not start"; return; }
+  running = true; $("run").disabled = true; const label = $("run").textContent; $("run").textContent = "Running…";
+  $("rkey").textContent = ""; $("result").innerHTML = '<div class="empty">Pipeline running…</div>';
+  $("flow").scrollIntoView({behavior: "smooth", block: "center"});
+  const tick = async () => {
+    const s = await getJSON("/api/pipeline/status"); flowFromRunner(s);
+    $("ptime").textContent = `· ${s.running ? "running" : "finished"} · ${s.elapsed} s`;
+    if (s.running) return setTimeout(tick, 800);
+    running = false; $("run").disabled = false; $("run").textContent = label;
+    if (s.result === "ERROR") { $("err").textContent = "Pipeline error: " + (s.log.slice(-1)[0] || ""); return; }
+    RUNS = await getJSON("/api/history"); result(RUNS.find(x => x.key === s.run_key) || RUNS[RUNS.length - 1]);
+  };
+  tick();
+}
+if (!CFG.static) {
+  $("samples").innerHTML = Object.keys(SAMPLES).map(k => `<button class="chip" type="button" data-k="${k}">${k}</button>`).join("");
+  $("samples").querySelectorAll("button").forEach(b => b.onclick = () => { [$("file").value, $("code").value] = SAMPLES[b.dataset.k]; });
+  $("code").addEventListener("keydown", e => { if (e.key === "Tab") { e.preventDefault(); const x = e.target, i = x.selectionStart; x.value = x.value.slice(0, i) + "    " + x.value.slice(x.selectionEnd); x.selectionStart = x.selectionEnd = i + 4; } });
+  $("run").onclick = run;
+  if ($("ghrun")) $("ghrun").onclick = ghRun;
+}
+flow([]); refresh(); setInterval(() => refresh(true), CFG.static ? 30000 : 8000);
 {% endraw %}
 </script>
 {% endblock %}

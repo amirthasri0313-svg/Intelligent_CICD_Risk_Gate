@@ -10,6 +10,8 @@ reports/*.json
 reports/*.xml
 !reports/history.json
 site/
+# personal GitHub token for the dashboard - never commit it
+github_token.txt
 # files from the first version
 readiness_score.txt
 change_score.txt

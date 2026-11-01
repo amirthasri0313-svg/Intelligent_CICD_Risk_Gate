@@ -13,6 +13,7 @@ import urllib.request
 
 from flask import Flask, abort, jsonify, redirect, render_template, request, url_for
 
+import github_live
 import history
 import runner
 from config import AUTO, BLOCKED, GITHUB_REPO, MANUAL, PAGES_URL, REMOTE_HISTORY_URL
@@ -63,7 +64,7 @@ def evaluate():
 
 @app.route("/dashboard")
 def dashboard():
-    return render_template("dashboard.html", STATIC=False)
+    return render_template("dashboard.html", STATIC=False, GITHUB_LIVE=github_live.available())
 
 
 @app.route("/run/<key>")
@@ -103,10 +104,16 @@ def api_history():
 
 @app.route("/api/pipeline/run", methods=["POST"])
 def api_pipeline_run():
-    scenario = (request.get_json(silent=True) or {}).get("scenario") or request.form.get("scenario")
-    if scenario and scenario not in runner.SCENARIOS:
-        return jsonify({"error": "Unknown scenario"}), 400
-    if not runner.start(scenario):
+    data = request.get_json(silent=True) or request.form
+    scenario, custom = data.get("scenario"), None
+    try:
+        if data.get("code") is not None:
+            custom = runner.custom_change(data.get("code"), data.get("filename"), data.get("message"))
+        elif scenario and scenario not in runner.SCENARIOS:
+            raise ValueError("Unknown scenario")
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+    if not runner.start(scenario, custom=custom):
         return jsonify({"error": "A pipeline run is already in progress"}), 409
     return jsonify(runner.status()), 202
 
@@ -149,6 +156,39 @@ def api_github_runs():
         return jsonify({"available": True, "runs": runs, "jobs": jobs})
     except (OSError, ValueError) as exc:
         return jsonify({"available": False, "error": str(exc)[:120], "runs": [], "jobs": []})
+
+
+@app.route("/api/github/push", methods=["POST"])
+def api_github_push():
+    """Commit the dashboard's code to GitHub: the real CI/CD workflow starts on it."""
+    data = request.get_json(silent=True) or {}
+    if not github_live.available():
+        return jsonify({"error": "GitHub token not set (see README: github_token.txt)"}), 400
+    try:
+        change = runner.custom_change(data.get("code"), data.get("filename"), data.get("message"))
+        (filename, code), = change["files"].items()
+        sha = github_live.push_code(filename, code, change["message"])
+    except (ValueError, github_live.GitHubError) as exc:
+        return jsonify({"error": str(exc)}), 400
+    return jsonify({"sha": sha, "commit_url": f"{REPO_URL}/commit/{sha}"}), 201
+
+
+@app.route("/api/github/track/<sha>")
+def api_github_track(sha):
+    try:
+        return jsonify(github_live.track(sha))
+    except github_live.GitHubError as exc:
+        return jsonify({"found": False, "error": str(exc)}), 502
+
+
+@app.route("/api/github/review", methods=["POST"])
+def api_github_review():
+    data = request.get_json(silent=True) or {}
+    try:
+        github_live.review(int(data.get("run_id")), data.get("action") == "approve", data.get("comment", ""))
+    except (TypeError, ValueError, github_live.GitHubError) as exc:
+        return jsonify({"error": str(exc)}), 400
+    return jsonify({"ok": True})
 
 
 @app.route("/health")
