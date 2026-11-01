@@ -859,5 +859,243 @@
   "created_at": "2026-11-01T15:39:14+00:00",
   "deployed_at": "2026-11-01T16:29:38+00:00",
   "deploy_url": "https://github.com/amirthasri0313-svg/Intelligent_CICD_Risk_Gate/actions/runs/41322271935"
+ },
+ {
+  "source": "github actions",
+  "run_url": "https://github.com/amirthasri0313-svg/Intelligent_CICD_Risk_Gate/actions/runs/41332571869",
+  "run_number": "16",
+  "event": "push",
+  "branch": "master",
+  "actor": "amirthasri0313-svg",
+  "commit_url": "https://github.com/amirthasri0313-svg/Intelligent_CICD_Risk_Gate/commit/5406cf3c3773b63d2aa255344afd9c2e5bcb1536",
+  "commit": "5406cf3c37",
+  "message": "Dashboard v2: live demo scenarios and real release to GitHub Pages",
+  "author": "amirthasri0313-svg",
+  "files": [
+   ".github/workflows/ci.yml",
+   ".gitignore",
+   "README.md",
+   "app.py",
+   "config.py",
+   "deploy.py",
+   "export_site.py",
+   "history.py",
+   "pipeline.py",
+   "runner.py",
+   "templates/base.html",
+   "templates/dashboard.html",
+   "templates/evaluation_result.html",
+   "templates/run_detail.html",
+   "tests/test_app.py",
+   "tests/test_pipeline.py"
+  ],
+  "change": {
+   "base": "6ed5a096c1",
+   "head": "5406cf3c37",
+   "message": "Dashboard v2: live demo scenarios and real release to GitHub Pages",
+   "author": "amirthasri0313-svg",
+   "commits": 2,
+   "files": [
+    ".github/workflows/ci.yml",
+    ".gitignore",
+    "README.md",
+    "app.py",
+    "config.py",
+    "deploy.py",
+    "export_site.py",
+    "history.py",
+    "pipeline.py",
+    "runner.py",
+    "templates/base.html",
+    "templates/dashboard.html",
+    "templates/evaluation_result.html",
+    "templates/run_detail.html",
+    "tests/test_app.py",
+    "tests/test_pipeline.py"
+   ],
+   "files_changed": 16,
+   "lines_added": 1031,
+   "lines_deleted": 167,
+   "directories": 4,
+   "entropy": 0.634,
+   "source_files": [
+    "app.py",
+    "config.py",
+    "deploy.py",
+    "export_site.py",
+    "history.py",
+    "pipeline.py",
+    "runner.py"
+   ],
+   "test_files": [
+    "tests/test_app.py",
+    "tests/test_pipeline.py"
+   ],
+   "workflow_changed": true,
+   "dependency_changed": false,
+   "change_score": 100
+  },
+  "tests": {
+   "total": 32,
+   "failed": 0,
+   "skipped": 0,
+   "passed": 32,
+   "pass_rate": 1.0,
+   "coverage": 0.8081,
+   "previous_total": null,
+   "removed": 0,
+   "pytest_exit": 0
+  },
+  "quality": {
+   "tool": "ruff",
+   "scope": "changed files",
+   "issues": [],
+   "issue_count": 0,
+   "max_complexity": 15,
+   "syntax_errors": [],
+   "status": "PASS"
+  },
+  "security": {
+   "tool": "bandit",
+   "scope": "changed files",
+   "findings": [],
+   "high": 0,
+   "medium": 0,
+   "low": 0,
+   "status": "PASS"
+  },
+  "ml": {
+   "available": true,
+   "historical_risk": 97.7,
+   "probability": 0.9133,
+   "commit": "bc3268e3b0",
+   "commit_message": "Dashboard v2 and real release to GitHub Pages",
+   "commits_scored": 2,
+   "metrics": {
+    "ns": 4,
+    "nd": 4,
+    "nf": 16,
+    "entropy": 0.627,
+    "la": 976,
+    "ld": 167,
+    "lt": 67.375,
+    "fix": 0,
+    "ndev": 2,
+    "age": 0.105,
+    "nuc": 36,
+    "exp": 17,
+    "rexp": 15.646,
+    "sexp": 29,
+    "test_ratio": 0.125,
+    "config_change": 1,
+    "hour": 17,
+    "weekend": 1
+   },
+   "top_features": [
+    [
+     "log_la",
+     "lines added"
+    ],
+    [
+     "test_ratio",
+     "share of test files"
+    ],
+    [
+     "log_nuc",
+     "earlier changes to these files"
+    ],
+    [
+     "log_exp",
+     "author experience"
+    ]
+   ],
+   "trained_on": "18,505 SZZ-labelled commits from Flask, Requests, Werkzeug, Jinja, Click and HTTPX"
+  },
+  "risk": {
+   "risk_score": 45.6,
+   "readiness_score": 54.4,
+   "evaluation_risk": 17.5,
+   "historical_risk": 97.7,
+   "level": "MEDIUM",
+   "decision": "MANUAL APPROVAL",
+   "blockers": [],
+   "guards": [
+    "CI/CD workflow file changed"
+   ],
+   "factors": [
+    [
+     "Change impact",
+     15.0,
+     "change score 100/100, 16 files"
+    ],
+    [
+     "Complexity",
+     2.5,
+     "max cyclomatic complexity 15"
+    ],
+    [
+     "Failing tests",
+     0.0,
+     "0 of 32 tests failing"
+    ],
+    [
+     "Low coverage",
+     0.0,
+     "coverage 81% (target 80%)"
+    ],
+    [
+     "Tests removed",
+     0.0,
+     "0 tests removed"
+    ],
+    [
+     "Security findings",
+     0.0,
+     "0 high, 0 medium, 0 low"
+    ],
+    [
+     "Code quality",
+     0.0,
+     "0 lint issues"
+    ],
+    [
+     "Source changed without tests",
+     0.0,
+     "tests updated or no source change"
+    ]
+   ],
+   "formula": "R = 0.65 x E 17.5 + 0.35 x H 97.7"
+  },
+  "stages": {
+   "Change Analysis": {
+    "status": "DONE",
+    "detail": "16 files, +1031 -167, score 100"
+   },
+   "Tests & Coverage": {
+    "status": "PASS",
+    "detail": "32/32 passed, coverage 81%"
+   },
+   "Code Quality": {
+    "status": "PASS",
+    "detail": "ruff: 0 issues, max complexity 15"
+   },
+   "Security Scan": {
+    "status": "PASS",
+    "detail": "bandit: 0 high, 0 medium, 0 low"
+   },
+   "ML Risk Model": {
+    "status": "DONE",
+    "detail": "H = 97.7 (p = 0.9133)"
+   },
+   "Risk Gate": {
+    "status": "MANUAL APPROVAL",
+    "detail": "risk 45.6/100"
+   }
+  },
+  "decision": "MANUAL APPROVAL",
+  "risk_score": 45.6,
+  "status": "WAITING APPROVAL",
+  "id": 4,
+  "created_at": "2026-11-01T17:39:42+00:00"
  }
 ]
