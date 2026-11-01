@@ -35,12 +35,17 @@ code,pre{font-family:Consolas,"Courier New",monospace}
 {% block style %}{% endblock %}
 </style>
 </head>
-<body>
+<body class="{% block bodyclass %}{% endblock %}">
 <div class="header">
   <div><h1>Intelligent CI/CD Risk Gate</h1><p>Automated Deployment Risk Assessment · DevOps RTE Project</p></div>
   <nav class="nav">
+    {% if STATIC %}
+    <a href="./" class="on">Live Dashboard</a>
+    <a href="{{ REPO_URL }}" target="_blank" rel="noopener">GitHub Repo ↗</a>
+    {% else %}
     <a href="/" class="{{ 'on' if request.path == '/' or request.path == '/evaluate' }}">Code Input</a>
     <a href="/dashboard" class="{{ 'on' if request.path.startswith('/dashboard') or request.path.startswith('/run') }}">Dashboard</a>
+    {% endif %}
     <a href="{{ REPO_URL }}/actions" target="_blank" rel="noopener">GitHub Actions ↗</a>
   </nav>
 </div>

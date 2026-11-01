@@ -44,7 +44,7 @@ def main():
         result = "DEPLOYED"
     elif code == 2:
         print("MANUAL APPROVAL REQUIRED - approve or reject it on the dashboard:")
-        print(f"  http://127.0.0.1:5000/run/{rec['id']}")
+        print(f"  http://127.0.0.1:5000/run/local-{rec['id']}")
         result = "WAITING FOR APPROVAL"
     else:
         print("RELEASE BLOCKED - fix the blockers and run the pipeline again.")

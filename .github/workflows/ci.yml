@@ -2,6 +2,7 @@ name: Intelligent CI/CD Risk Gate
 
 # Code Input (push / pull request) -> Automated Evaluation -> Risk Calculation
 # -> Risk Gate -> Dashboard (reports/history.json) -> Release / Manual Approval
+# Release = the dashboard site is published to GitHub Pages (only when the gate allows it)
 on:
   push:
     branches: [master]
@@ -85,7 +86,9 @@ jobs:
     needs: risk-gate
     if: needs.risk-gate.outputs.decision == 'AUTO DEPLOY' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
-    environment: production
+    environment:
+      name: production
+      url: https://amirthasri0313-svg.github.io/Intelligent_CICD_Risk_Gate/
     steps:
       - uses: actions/checkout@v4
         with:
@@ -93,7 +96,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
-      - name: Deploy application
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Deploy application (build release package)
         run: python deploy.py --run-id ${{ needs.risk-gate.outputs.run_id }}
       - name: Record deployment on dashboard
         run: |
@@ -102,6 +107,10 @@ jobs:
           git add -f reports/history.json
           git commit -m "Risk gate: run ${{ needs.risk-gate.outputs.run_id }} deployed [skip ci]" || exit 0
           for i in 1 2 3; do git pull --rebase origin "${{ github.ref_name }}" && git push && break; sleep 3; done
+      - name: Upload release package for GitHub Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site/
 
   deploy-after-approval:
     name: "Stage 6 · Manual approval, then deploy (medium risk)"
@@ -109,7 +118,9 @@ jobs:
     if: needs.risk-gate.outputs.decision == 'MANUAL APPROVAL' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     # Settings -> Environments -> production-approval -> Required reviewers
-    environment: production-approval
+    environment:
+      name: production-approval
+      url: https://amirthasri0313-svg.github.io/Intelligent_CICD_Risk_Gate/
     steps:
       - uses: actions/checkout@v4
         with:
@@ -117,6 +128,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
+          cache: pip
+      - run: pip install -r requirements.txt
       - name: Deploy application (approved by reviewer)
         run: python deploy.py --run-id ${{ needs.risk-gate.outputs.run_id }} --approved-by "GitHub reviewer"
       - name: Record deployment on dashboard
@@ -126,3 +139,24 @@ jobs:
           git add -f reports/history.json
           git commit -m "Risk gate: run ${{ needs.risk-gate.outputs.run_id }} approved and deployed [skip ci]" || exit 0
           for i in 1 2 3; do git pull --rebase origin "${{ github.ref_name }}" && git push && break; sleep 3; done
+      - name: Upload release package for GitHub Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site/
+
+  publish:
+    name: "Stage 6 · Release to GitHub Pages"
+    needs: [deploy, deploy-after-approval]
+    # runs only when one of the deploy jobs succeeded: blocked or rejected changes are never released
+    if: always() && (needs.deploy.result == 'success' || needs.deploy-after-approval.result == 'success')
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.pages.outputs.page_url }}
+    steps:
+      - name: Publish release
+        id: pages
+        uses: actions/deploy-pages@v4

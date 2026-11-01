@@ -6,9 +6,17 @@ GitHub Actions jobs, the local pipeline and the dashboard all read the same data
 import os
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(os.environ.get("RISKGATE_ROOT") or Path(__file__).resolve().parent)  # demo runs use a temporary worktree
 REPORT_DIR = Path(os.environ.get("RISKGATE_REPORTS", ROOT / "reports"))
-HISTORY_FILE = REPORT_DIR / "history.json"
+HISTORY_FILE = REPORT_DIR / "history.json"              # written by GitHub Actions
+LOCAL_HISTORY_FILE = REPORT_DIR / "local_history.json"  # local pipeline + Code Input
+
+# The GitHub repository this pipeline runs in (live runs and history on the dashboard)
+GITHUB_REPO = os.environ.get("RISKGATE_GITHUB_REPO", "amirthasri0313-svg/Intelligent_CICD_Risk_Gate")
+GITHUB_BRANCH = os.environ.get("RISKGATE_GITHUB_BRANCH", "master")
+REMOTE_HISTORY_URL = f"https://raw.githubusercontent.com/{GITHUB_REPO}/{GITHUB_BRANCH}/reports/history.json"
+SITE_DIR = Path(os.environ.get("RISKGATE_SITE_DIR", ROOT / "site"))  # release package (GitHub Pages)
+PAGES_URL = "https://{}.github.io/{}/".format(*GITHUB_REPO.split("/"))
 MODEL_FILE = Path(os.environ.get("RISKGATE_MODEL", ROOT / "model" / "jit_model.joblib"))
 
 # Folders that are never scanned as application code

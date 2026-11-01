@@ -35,9 +35,9 @@ input{font:inherit;border:1px solid #d1d5db;border-radius:8px;padding:10px 12px;
 
   <div class="card" style="margin-top:18px">
     <h2>Release / manual approval</h2>
-    {% if run.status == 'WAITING APPROVAL' and run.source != 'github actions' %}
+    {% if run.status == 'WAITING APPROVAL' and run.key.startswith('local-') %}
       <p class="muted">This change is waiting for a reviewer.</p>
-      <form method="post" action="/run/{{ run.id }}/review">
+      <form method="post" action="/run/{{ run.key }}/review">
         <input name="reviewer" placeholder="Reviewer name" required aria-label="Reviewer name">
         <input name="note" placeholder="Review note" aria-label="Review note">
         <button class="btn green" name="action" value="approve">Approve &amp; deploy</button>

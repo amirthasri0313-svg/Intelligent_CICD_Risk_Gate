@@ -23,11 +23,32 @@ and decides whether it may be deployed:
 | 3 Risk calculation | `release_readiness.py` | step "Stage 3 · Risk calculation" |
 | 4 Risk gate | `risk_gate.py` | step "Stage 4 · Risk gate decision" + **job summary table** |
 | 5 Dashboard | `reports/history.json`, `app.py` | step "Stage 5 · Save run to dashboard history" |
-| 6 Release | `deploy.py` | job **Auto deploy** or job **Manual approval, then deploy** |
+| 6 Release | `deploy.py`, `export_site.py` | job **Auto deploy** or **Manual approval, then deploy** builds the release, job **Release to GitHub Pages** publishes it |
 
 The ML model (Gradient Boosting) was trained on 18,505 commits of Flask, Requests,
 Werkzeug, Jinja, Click and HTTPX, labelled with the SZZ algorithm (ROC-AUC 0.80 on
 held-out commits). It reads this repository's own git history to judge each new commit.
+
+## Live release (GitHub Pages)
+
+Every change the gate lets through is really deployed: the deploy job builds the
+release package (the Risk Gate dashboard as a static site) and the **Release to
+GitHub Pages** job publishes it to
+
+**https://amirthasri0313-svg.github.io/Intelligent_CICD_Risk_Gate/**
+
+Blocked or rejected changes never reach this URL. The live site reads the run
+history and the GitHub Actions runs straight from GitHub, so it stays current.
+
+## Dashboard
+
+`python app.py` → http://127.0.0.1:5000/dashboard
+
+- the six stages of the title as a live flow, coloured by the latest run
+- **▶ Run pipeline now**: runs every stage on your last commit and lights them up live, with the log
+- GitHub Actions panel: latest workflow runs and jobs, read live from GitHub
+- risk trend (R, E and H with the 30/70 bands), gate decision donut, E/H contribution per run
+- all runs with filters and search; click a run for stages, factors, findings, ML signals and approve / reject
 
 ## One-time GitHub setup (2 minutes)
 
@@ -37,6 +58,7 @@ held-out commits). It reads this repository's own git history to judge each new 
 2. **Settings → Environments → New environment → `production`** (no rules).
 3. **Settings → Actions → General → Workflow permissions → Read and write permissions → Save**
    (lets the pipeline save each run to `reports/history.json`).
+4. **Settings → Pages → Build and deployment → Source: GitHub Actions** (the live release).
 
 ## Run it
 

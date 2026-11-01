@@ -26,6 +26,9 @@ def reports(tmp_path, monkeypatch):
     monkeypatch.setattr(config, "REPORT_DIR", tmp_path)
     monkeypatch.setattr(history, "REPORT_DIR", tmp_path)
     monkeypatch.setattr(history, "HISTORY_FILE", tmp_path / "history.json")
+    monkeypatch.setattr(history, "LOCAL_HISTORY_FILE", tmp_path / "local_history.json")
+    monkeypatch.setattr(config, "SITE_DIR", tmp_path / "site")
+    monkeypatch.setenv("RISKGATE_OFFLINE", "1")
     for var in ("GITHUB_ACTIONS", "GITHUB_STEP_SUMMARY", "GITHUB_OUTPUT"):
         monkeypatch.delenv(var, raising=False)
     return tmp_path
@@ -129,6 +132,9 @@ def test_risk_gate_auto_deploy_and_deploy(reports):
     assert run["decision"] == config.AUTO and run["status"] == "DEPLOYING"
     deploy.deploy_application(run["id"])
     assert history.get(run["id"])["status"] == "DEPLOYED"
+    site = reports / "site"
+    assert (site / "index.html").exists() and "Deployment Risk Dashboard" in (site / "index.html").read_text(encoding="utf-8")
+    assert json.loads((site / "history.json").read_text())[-1]["key"] == f"local-{run['id']}"
 
 
 def test_risk_gate_manual_approval(reports):

@@ -9,6 +9,7 @@ venv/
 reports/*.json
 reports/*.xml
 !reports/history.json
+site/
 # files from the first version
 readiness_score.txt
 change_score.txt
